@@ -1,0 +1,14 @@
+[package]
+name = "beaulieu_automation"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5" }
+inputbot = { workspace = true }
+once_cell = { workspace = true }
+regex = { workspace = true }
+serde = { workspace = true }
+serde_json = { version = "1.0" }
+tracing = { version = "0.1" }
+tracing-subscriber = { version = "0.3" }

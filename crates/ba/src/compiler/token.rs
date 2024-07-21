@@ -37,7 +37,7 @@ pub(super) struct Span {
     // inclusive
     pub start: usize,
     // exclusive
-    pub end:   usize,
+    pub end: usize,
 }
 
 impl From<Span> for std::ops::Range<usize> {
@@ -64,11 +64,18 @@ impl std::ops::Index<Span> for str {
 pub(super) enum TokenKind {
     // Operators
     Define,
-    Let,
+    Eq,
+
+    // Actions
     LMBClick,
     RMBClick,
     Type,
     Sleep,
+
+    // Delimiters
+    Comma,
+    EOI, // end of instruction
+    EOF, // end of file
 
     // Brackets
     LSquare,
@@ -82,26 +89,32 @@ pub(super) enum TokenKind {
     Number,
 
     // Misc.
-    EOF, // end of file
-    EOI, // end of instruction
     Error,
 }
 
+impl std::fmt::Display for TokenKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "nada")
+    }
+}
+
+/*
 #[macro_export]
 macro_rules! TK {
     // Operators
     [def] => {$crate::compiler::token::TokenKind::Define};
-    [let] => {$crate::compiler::token::TokenKind::Let};
+    [=] => {$crate::compiler::token::TokenKind::Eq};
+
+    // Actions
     [LMBC] => {$crate::compiler::token::TokenKind::LMBClick};
     [RMBC] => {$crate::compiler::token::TokenKind::RMBClick};
     [type] => {$crate::compiler::token::TokenKind::Type};
     [sleep] => {$crate::compiler::token::TokenKind::Sleep};
 
-    // Brackets
-    ['['] => {$crate::compiler::token::TokenKind::LSquare};
-    [']'] => {$crate::compiler::token::TokenKind::RSquare};
-    ['('] => {$crate::compiler::token::TokenKind::LParen};
-    [')'] => {$crate::compiler::token::TokenKind::RParen};
+    // Delimiters
+    [,] => {$crate::compiler::token::TokenKind::Comma};
+    [EOI] => {$crate::compiler::token::TokenKind::EOI};
+    [EOF] => {$crate::compiler::token::TokenKind::EOF};
 
     // Multiple characters
     [string] => {$crate::compiler::token::TokenKind::String};
@@ -109,8 +122,6 @@ macro_rules! TK {
     [comment] => {$crate::compiler::token::TokenKind::Comment};
 
     // Misc
-    [EOF] => {$crate::compiler::token::TokenKind::EOF};
-    [EOI] => {$crate::compiler::token::TokenKind::EOI};
     [Error] => {$crate::compiler::token::TokenKind::Error};
 }
 
@@ -120,11 +131,19 @@ impl std::fmt::Display for TokenKind {
             match self {
                 // Operators
                 TK![def] => "def",
-                TK![let] => "let",
+                TK![=] => "=",
+
+                // Actions
                 TK![LMBC] => "LMB_click",
                 TK![RMBC] => "RMB_click",
                 TK![type] => "type",
                 TK![sleep] => "sleep",
+
+                // Delimiters
+                TK!['"'] => "\"",
+                TK![,] => ",",
+                TK![EOI] => ";\n",
+                TK![EOF] => "EOF",
 
                 // Brackets
                 TK!['['] => "[",
@@ -138,10 +157,9 @@ impl std::fmt::Display for TokenKind {
                 TK![comment] => "// comment",
 
                 // Misc.
-                TK![EOF] => "EOF",
-                TK![EOI] => ";\n",
                 TK![Error] => "Error",
             }
         )
     }
 }
+    */
