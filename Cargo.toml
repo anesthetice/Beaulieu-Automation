@@ -8,6 +8,7 @@ resolver = "2"
 [workspace.package]
 authors = ["Elliot Currat"]
 edition = "2021"
+version = "0.1.0"
 
 [workspace.dependencies]
 inputbot = { version = "0.6.0", path = "crates/InputBot" }

@@ -16,7 +16,3 @@ windows = { workspace = true }
 
 [dev-dependencies]
 toml = { version = "^0.8" }
-
-[[example]]
-name = "serde"
-required-features = ["serde"]

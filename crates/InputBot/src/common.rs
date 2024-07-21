@@ -9,7 +9,6 @@ pub use std::{
 
 pub enum Bind {
     Normal(Handler),
-    #[cfg(target_os = "windows")]
     Release(Handler),
     Block(BlockHandler),
     Blockable(BlockableHandler),
