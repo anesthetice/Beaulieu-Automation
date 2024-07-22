@@ -33,6 +33,7 @@ fn main() -> anyhow::Result<()> {
     let height = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(1)) };
     tracing::info!("primary monitor: {width}x{height}");
 
+    inputbot::KeybdKey::EAccAiguKey.press();
+    inputbot::KeybdKey::EAccAiguKey.release();
     Ok(())
 }
-

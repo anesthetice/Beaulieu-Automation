@@ -145,6 +145,7 @@ pub enum KeybdKey {
     YKey,
     ZKey,
     LSuper,
+    RSuper,
     Numpad0Key,
     Numpad1Key,
     Numpad2Key,
@@ -167,6 +168,18 @@ pub enum KeybdKey {
     F10Key,
     F11Key,
     F12Key,
+    F13Key,
+    F14Key,
+    F15Key,
+    F16Key,
+    F17Key,
+    F18Key,
+    F19Key,
+    F20Key,
+    F21Key,
+    F22Key,
+    F23Key,
+    F24Key,
     NumLockKey,
     ScrollLockKey,
     CapsLockKey,
@@ -177,18 +190,45 @@ pub enum KeybdKey {
     LAltKey,
     RAltKey,
 
-    BackquoteKey,
-    SlashKey,
-    BackslashKey,
-    CommaKey,
-    PeriodKey,
-    MinusKey,
-    QuoteKey,
-    SemicolonKey,
-    LBracketKey,
-    RBracketKey,
-    EqualKey,
+    BrowserBackKey,
+    BrowserForwardKey,
+    BrowserRefreshKey,
 
+    VolumeMuteKey,
+    VolumeDownKey,
+    VolumeUpKey,
+
+    MediaNextTrackKey,
+    MediaPrevTrackKey,
+    MediaStopKey,
+    MediaPlayPauseKey,
+
+    // http://kbdlayout.info/KBDSF/virtualkeys
+    // OEM COMMA
+    CommaKey,
+    // OEM PERIOD
+    PeriodKey,
+    // OEM MINUS
+    DashKey,
+    // OEM 1
+    EAccGraveKey,
+    // OEM 2
+    SectionKey,
+    // OEM 3
+    TremaKey,
+    // OEM 4
+    ApostropheKey,
+    // OEM 5
+    AAccGraveKey,
+    // OEM 6
+    CircumflexKey,
+    // OEM 7
+    EAccAiguKey,
+    // OEM 8
+    DollarSignKey,
+    // OEM 102
+    LessThanKey,
+    
     #[strum(disabled)]
     OtherKey(u64),
 }
@@ -218,7 +258,6 @@ impl KeybdKey {
             .insert(self, Bind::Normal(Arc::new(callback)));
     }
 
-    #[cfg(target_os = "windows")]
     pub fn bind_release<F: Fn() + Send + Sync + 'static>(self, callback: F) {
         KEYBD_RELEASE_BINDS
             .lock()
@@ -254,7 +293,6 @@ impl KeybdKey {
         }
     }
 
-    #[cfg(target_os = "windows")]
     pub fn bind_all_release<F: Fn(KeybdKey) + Send + Sync + Clone + 'static>(callback: F) {
         for key in KeybdKey::iter() {
             let callback = callback.clone();
@@ -281,7 +319,6 @@ impl KeybdKey {
     pub fn canonical_name(self) -> String {
         match self {
             KeybdKey::LSuper => "LeftSuper".to_owned(),
-            KeybdKey::RSuper => "RightSuper".to_owned(),
             _ => format!("{}", self),
         }
     }
@@ -344,22 +381,8 @@ impl std::fmt::Display for KeybdKey {
                 KeybdKey::XKey => "x",
                 KeybdKey::YKey => "y",
                 KeybdKey::ZKey => "z",
-                KeybdKey::LSuper =>
-                    if cfg!(target_os = "windows") {
-                        "LeftWindows"
-                    } else if cfg!(target_os = "macos") {
-                        "LeftCommand"
-                    } else {
-                        "LeftSuper"
-                    },
-                KeybdKey::RSuper =>
-                    if cfg!(target_os = "windows") {
-                        "RightWindows"
-                    } else if cfg!(target_os = "macos") {
-                        "RightCommand"
-                    } else {
-                        "RightSuper"
-                    },
+                KeybdKey::LSuper => "LeftSuper",
+                KeybdKey::RSuper => "RightSuper",
                 KeybdKey::Numpad0Key => "NumPad0",
                 KeybdKey::Numpad1Key => "NumPad1",
                 KeybdKey::Numpad2Key => "NumPad2",
@@ -413,23 +436,38 @@ impl std::fmt::Display for KeybdKey {
                 KeybdKey::MediaPrevTrackKey => "MediaPrevious",
                 KeybdKey::MediaStopKey => "MediaStop",
                 KeybdKey::MediaPlayPauseKey => "MediaPlay",
-                KeybdKey::BackquoteKey => "Backquote",
-                KeybdKey::SlashKey => "Slash",
-                KeybdKey::BackslashKey => "Backslash",
-                KeybdKey::CommaKey => "Comma",
-                KeybdKey::PeriodKey => "Period",
-                KeybdKey::MinusKey => "Minus",
-                KeybdKey::QuoteKey => "QuoteKey",
-                KeybdKey::SemicolonKey => "Semicolon",
-                KeybdKey::LBracketKey => "LeftBracket",
-                KeybdKey::RBracketKey => "RightBracket",
-                KeybdKey::EqualKey => "Equal",
+
+                // http://kbdlayout.info/KBDSF/virtualkeys
+                // OEM COMMA
+                KeybdKey::CommaKey => ",",
+                // OEM PERIOD
+                KeybdKey::PeriodKey => ".",
+                // OEM MINUS
+                KeybdKey::DashKey => "-",
+                // OEM 1
+                KeybdKey::EAccGraveKey => "è",
+                // OEM 2
+                KeybdKey::SectionKey => "§",
+                // OEM 3
+                KeybdKey::TremaKey => "\"",
+                // OEM 4
+                KeybdKey::ApostropheKey => "\'",
+                // OEM 5
+                KeybdKey::AAccGraveKey => "à",
+                // OEM 6
+                KeybdKey::CircumflexKey => "^",
+                // OEM 7
+                KeybdKey::EAccAiguKey => "è",
+                // OEM 8
+                KeybdKey::DollarSignKey => "$",
+                // OEM 102
+                KeybdKey::LessThanKey => "<",
+
                 KeybdKey::OtherKey(code) => return write!(f, "OtherKey({code})"),
             }
         )
     }
 }
-
 
 #[derive(Debug, Error)]
 pub enum ParseError {
@@ -453,8 +491,6 @@ impl std::str::FromStr for KeybdKey {
         match s_lower.as_str() {
             "leftwindows" => return Ok(KeybdKey::LSuper),
             "leftcommand" => return Ok(KeybdKey::LSuper),
-            "rightwindows" => return Ok(KeybdKey::RSuper),
-            "rightcommand" => return Ok(KeybdKey::RSuper),
             _ => {}
         }
         if let Some(caps) = other_key_regex().captures(s) {
@@ -604,155 +640,10 @@ impl<'de> Deserialize<'de> for MouseButton {
     }
 }
 
-pub fn from_keybd_key(k: KeybdKey) -> Option<char> {
-    match k {
-        KeybdKey::AKey => Some('a'),
-        KeybdKey::BKey => Some('b'),
-        KeybdKey::CKey => Some('c'),
-        KeybdKey::DKey => Some('d'),
-        KeybdKey::EKey => Some('e'),
-        KeybdKey::FKey => Some('f'),
-        KeybdKey::GKey => Some('g'),
-        KeybdKey::HKey => Some('h'),
-        KeybdKey::IKey => Some('i'),
-        KeybdKey::JKey => Some('j'),
-        KeybdKey::KKey => Some('k'),
-        KeybdKey::LKey => Some('l'),
-        KeybdKey::MKey => Some('m'),
-        KeybdKey::NKey => Some('n'),
-        KeybdKey::OKey => Some('o'),
-        KeybdKey::PKey => Some('p'),
-        KeybdKey::QKey => Some('q'),
-        KeybdKey::RKey => Some('r'),
-        KeybdKey::SKey => Some('s'),
-        KeybdKey::TKey => Some('t'),
-        KeybdKey::UKey => Some('u'),
-        KeybdKey::VKey => Some('v'),
-        KeybdKey::WKey => Some('w'),
-        KeybdKey::XKey => Some('x'),
-        KeybdKey::YKey => Some('y'),
-        KeybdKey::ZKey => Some('z'),
-        KeybdKey::Numpad0Key => Some('0'),
-        KeybdKey::Numpad1Key => Some('1'),
-        KeybdKey::Numpad2Key => Some('2'),
-        KeybdKey::Numpad3Key => Some('3'),
-        KeybdKey::Numpad4Key => Some('4'),
-        KeybdKey::Numpad5Key => Some('5'),
-        KeybdKey::Numpad6Key => Some('6'),
-        KeybdKey::Numpad7Key => Some('7'),
-        KeybdKey::Numpad8Key => Some('8'),
-        KeybdKey::Numpad9Key => Some('9'),
-        KeybdKey::Numrow0Key => Some('0'),
-        KeybdKey::Numrow1Key => Some('1'),
-        KeybdKey::Numrow2Key => Some('2'),
-        KeybdKey::Numrow3Key => Some('3'),
-        KeybdKey::Numrow4Key => Some('4'),
-        KeybdKey::Numrow5Key => Some('5'),
-        KeybdKey::Numrow6Key => Some('6'),
-        KeybdKey::Numrow7Key => Some('7'),
-        KeybdKey::Numrow8Key => Some('8'),
-        KeybdKey::Numrow9Key => Some('9'),
-        KeybdKey::BackslashKey => Some('\\'),
-        KeybdKey::SlashKey => Some('/'),
-        KeybdKey::CommaKey => Some(','),
-        KeybdKey::PeriodKey => Some('.'),
-        KeybdKey::MinusKey => Some('-'),
-        KeybdKey::QuoteKey => Some('"'),
-        KeybdKey::SemicolonKey => Some(';'),
-        KeybdKey::LBracketKey => Some('['),
-        KeybdKey::RBracketKey => Some(']'),
-        KeybdKey::EqualKey => Some('='),
-        _ => None,
-    }
-}
-
-pub fn get_keybd_key(c: char) -> Option<KeybdKey> {
-    match c {
-        ' ' => Some(KeybdKey::SpaceKey),
-        'A' | 'a' => Some(KeybdKey::AKey),
-        'B' | 'b' => Some(KeybdKey::BKey),
-        'C' | 'c' => Some(KeybdKey::CKey),
-        'D' | 'd' => Some(KeybdKey::DKey),
-        'E' | 'e' => Some(KeybdKey::EKey),
-        'F' | 'f' => Some(KeybdKey::FKey),
-        'G' | 'g' => Some(KeybdKey::GKey),
-        'H' | 'h' => Some(KeybdKey::HKey),
-        'I' | 'i' => Some(KeybdKey::IKey),
-        'J' | 'j' => Some(KeybdKey::JKey),
-        'K' | 'k' => Some(KeybdKey::KKey),
-        'L' | 'l' => Some(KeybdKey::LKey),
-        'M' | 'm' => Some(KeybdKey::MKey),
-        'N' | 'n' => Some(KeybdKey::NKey),
-        'O' | 'o' => Some(KeybdKey::OKey),
-        'P' | 'p' => Some(KeybdKey::PKey),
-        'Q' | 'q' => Some(KeybdKey::QKey),
-        'R' | 'r' => Some(KeybdKey::RKey),
-        'S' | 's' => Some(KeybdKey::SKey),
-        'T' | 't' => Some(KeybdKey::TKey),
-        'U' | 'u' => Some(KeybdKey::UKey),
-        'V' | 'v' => Some(KeybdKey::VKey),
-        'W' | 'w' => Some(KeybdKey::WKey),
-        'X' | 'x' => Some(KeybdKey::XKey),
-        'Y' | 'y' => Some(KeybdKey::YKey),
-        'Z' | 'z' => Some(KeybdKey::ZKey),
-        '0' | ')' => Some(KeybdKey::Numrow0Key),
-        '1' | '!' => Some(KeybdKey::Numrow1Key),
-        '2' | '@' => Some(KeybdKey::Numrow2Key),
-        '3' | '#' => Some(KeybdKey::Numrow3Key),
-        '4' | '$' => Some(KeybdKey::Numrow4Key),
-        '5' | '%' => Some(KeybdKey::Numrow5Key),
-        '6' | '^' => Some(KeybdKey::Numrow6Key),
-        '7' | '&' => Some(KeybdKey::Numrow7Key),
-        '8' | '*' => Some(KeybdKey::Numrow8Key),
-        '9' | '(' => Some(KeybdKey::Numrow9Key),
-        '`' | '~' => Some(KeybdKey::BackquoteKey),
-        '/' | '?' => Some(KeybdKey::SlashKey),
-        ',' | '<' => Some(KeybdKey::CommaKey),
-        '.' | '>' => Some(KeybdKey::PeriodKey),
-        '-' | '_' => Some(KeybdKey::MinusKey),
-        ';' | ':' => Some(KeybdKey::SemicolonKey),
-        '[' | '{' => Some(KeybdKey::LBracketKey),
-        ']' | '}' => Some(KeybdKey::RBracketKey),
-        '=' | '+' => Some(KeybdKey::EqualKey),
-        '\\' | '|' => Some(KeybdKey::BackslashKey),
-        '\'' | '"' => Some(KeybdKey::QuoteKey),
-        _ => None,
-    }
-}
-
 pub struct KeySequence<'a>(pub &'a str);
 
 impl KeySequence<'_> {
     pub fn send(&self) {
-        for c in self.0.chars() {
-            let mut uppercase = false;
-
-            if let Some(keybd_key) = {
-                if c.is_uppercase()
-                    || [
-                        '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '{', '}', '|',
-                        ':', '"', '<', '>', '?', '~',
-                    ]
-                    .contains(&c)
-                {
-                    uppercase = true;
-                }
-
-                get_keybd_key(c)
-            } {
-                if uppercase {
-                    KeybdKey::LShiftKey.press();
-                }
-
-                keybd_key.press();
-                sleep(Duration::from_millis(20));
-                keybd_key.release();
-
-                if uppercase {
-                    KeybdKey::LShiftKey.release();
-                }
-            };
-        }
     }
 }
 
@@ -763,7 +654,6 @@ pub fn stop_handling_input_events() {
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     
     fn to_string_roundtrips() -> Result<(), Box<dyn std::error::Error>> {

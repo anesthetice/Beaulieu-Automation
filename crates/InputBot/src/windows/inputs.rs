@@ -98,10 +98,10 @@ impl From<KeybdKey> for u64 {
             NumLockKey => 0x90,
             ScrollLockKey => 0x91,
             CapsLockKey => 0x14,
-            LShiftKey => 0x10,
-            RShiftKey => 0x10,
-            LControlKey => 0x11,
-            RControlKey => 0x11,
+            LShiftKey => 0xA0,
+            RShiftKey => 0xA1,
+            LControlKey => 0xA2,
+            RControlKey => 0xA3,
             LAltKey => 0xA4,
             RAltKey => 0xA5,
             BrowserBackKey => 0xA6,
@@ -114,17 +114,33 @@ impl From<KeybdKey> for u64 {
             MediaPrevTrackKey => 0xB1,
             MediaStopKey => 0xB2,
             MediaPlayPauseKey => 0xB3,
-            BackquoteKey => 0xC0,
-            SlashKey => 0xBF,
-            BackslashKey => 0xDC,
+            
+            // http://kbdlayout.info/KBDSF/virtualkeys
+            // OEM COMMA
             CommaKey => 0xBC,
+            // OEM PERIOD
             PeriodKey => 0xBE,
-            MinusKey => 0xBD,
-            QuoteKey => 0xDE,
-            SemicolonKey => 0xBA,
-            LBracketKey => 0xDB,
-            RBracketKey => 0xDD,
-            EqualKey => 0xBB,
+            // OEM MINUS
+            DashKey => 0xBD,
+            // OEM 1
+            EAccGraveKey => 0xBA,
+            // OEM 2
+            SectionKey => 0xBF,
+            // OEM 3
+            TremaKey => 0xC0,
+            // OEM 4
+            ApostropheKey => 0xDB,
+            // OEM 5
+            AAccGraveKey => 0xDC,
+            // OEM 6
+            CircumflexKey => 0xDD,
+            // OEM 7
+            EAccAiguKey => 0xDE,
+            // OEM 8
+            DollarSignKey => 0xDF,
+            // OEM 102
+            LessThanKey => 0xE2,
+
             OtherKey(code) => code,
         }
     }
@@ -186,7 +202,6 @@ impl From<u64> for KeybdKey {
             0x59 => YKey,
             0x5A => ZKey,
             0x5B => LSuper,
-            0x5C => RSuper,
             0x60 => Numpad0Key,
             0x61 => Numpad1Key,
             0x62 => Numpad2Key,
@@ -240,17 +255,21 @@ impl From<u64> for KeybdKey {
             0xB1 => MediaPrevTrackKey,
             0xB2 => MediaStopKey,
             0xB3 => MediaPlayPauseKey,
-            0xC0 => BackquoteKey,
-            0xBF => SlashKey,
-            0xDC => BackslashKey,
+
+            // http://kbdlayout.info/KBDSF/virtualkeys
             0xBC => CommaKey,
             0xBE => PeriodKey,
-            0xBD => MinusKey,
-            0xDE => QuoteKey,
-            0xBA => SemicolonKey,
-            0xDB => LBracketKey,
-            0xDD => RBracketKey,
-            0xBB => EqualKey,
+            0xBD => DashKey,
+            0xBA => EAccGraveKey,
+            0xBF => SectionKey,
+            0xC0 => TremaKey,
+            0xDB => ApostropheKey,
+            0xDC => AAccGraveKey,
+            0xDD => CircumflexKey,
+            0xDE => EAccAiguKey,
+            0xDF => DollarSignKey,
+            0xE2 => LessThanKey,
+
             _ => OtherKey(code),
         }
     }
