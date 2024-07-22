@@ -114,7 +114,7 @@ impl From<KeybdKey> for u64 {
             MediaPrevTrackKey => 0xB1,
             MediaStopKey => 0xB2,
             MediaPlayPauseKey => 0xB3,
-            
+
             // http://kbdlayout.info/KBDSF/virtualkeys
             // OEM COMMA
             CommaKey => 0xBC,

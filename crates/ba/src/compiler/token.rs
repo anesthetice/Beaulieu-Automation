@@ -1,4 +1,4 @@
-pub(super) struct Token {
+pub struct Token {
     pub kind: TokenKind,
     pub span: Span,
 }
@@ -16,11 +16,9 @@ impl Token {
 impl std::fmt::Debug for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
-            f, 
-            "{:?} - <{}, {}>", 
-            self.kind, 
-            self.span.start, 
-            self.span.end
+            f,
+            "{:?} - <{}, {}>",
+            self.kind, self.span.start, self.span.end
         )
     }
 }
@@ -30,7 +28,6 @@ impl std::fmt::Display for Token {
         write!(f, "{}", self.kind)
     }
 }
-
 
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Span {
@@ -48,7 +45,10 @@ impl From<Span> for std::ops::Range<usize> {
 
 impl From<std::ops::Range<usize>> for Span {
     fn from(range: std::ops::Range<usize>) -> Self {
-        Self {start: range.start, end: range.end}
+        Self {
+            start: range.start,
+            end: range.end,
+        }
     }
 }
 
@@ -75,6 +75,7 @@ pub(super) enum TokenKind {
     Typewrite,
 
     // Delimiters
+    Whitespace,
     Comma,
     EOI, // end of instruction
     EOF, // end of file
@@ -102,6 +103,7 @@ macro_rules! TK {
     [Sleep] => {$crate::compiler::token::TokenKind::Sleep};
 
     // Delimiters
+    [ws] => {$crate::compiler::token::TokenKind::Whitespace};
     [,] => {$crate::compiler::token::TokenKind::Comma};
     [EOI] => {$crate::compiler::token::TokenKind::EOI};
     [EOF] => {$crate::compiler::token::TokenKind::EOF};
@@ -114,7 +116,6 @@ macro_rules! TK {
     // Misc
     [Error] => {$crate::compiler::token::TokenKind::Error};
 }
-
 
 impl std::fmt::Display for TokenKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
