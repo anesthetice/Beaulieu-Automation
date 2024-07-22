@@ -6,7 +6,7 @@ mod keymap;
 use anyhow::Context;
 use tracing_subscriber::FmtSubscriber;
 use windows::Win32::UI::{Input::KeyboardAndMouse::GetKeyboardLayoutNameA, WindowsAndMessaging::{GetSystemMetrics, SYSTEM_METRICS_INDEX}};
-use std::ffi::CStr;
+use std::{ffi::CStr, io::Write};
     
 fn main() -> anyhow::Result<()> {
 
@@ -33,7 +33,5 @@ fn main() -> anyhow::Result<()> {
     let height = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(1)) };
     tracing::info!("primary monitor: {width}x{height}");
 
-    inputbot::KeybdKey::EAccAiguKey.press();
-    inputbot::KeybdKey::EAccAiguKey.release();
     Ok(())
 }

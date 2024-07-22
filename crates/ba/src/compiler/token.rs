@@ -67,21 +67,17 @@ pub(super) enum TokenKind {
     Eq,
 
     // Actions
-    LMBClick,
-    RMBClick,
-    Type,
+    Move,
+    Tap,
+    Press,
+    Release,
     Sleep,
+    Typewrite,
 
     // Delimiters
     Comma,
     EOI, // end of instruction
     EOF, // end of file
-
-    // Brackets
-    LSquare,
-    RSquare,
-    LParen,
-    RParen,
 
     // Multiple characters
     String,
@@ -92,13 +88,6 @@ pub(super) enum TokenKind {
     Error,
 }
 
-impl std::fmt::Display for TokenKind {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "nada")
-    }
-}
-
-/*
 #[macro_export]
 macro_rules! TK {
     // Operators
@@ -106,10 +95,11 @@ macro_rules! TK {
     [=] => {$crate::compiler::token::TokenKind::Eq};
 
     // Actions
-    [LMBC] => {$crate::compiler::token::TokenKind::LMBClick};
-    [RMBC] => {$crate::compiler::token::TokenKind::RMBClick};
-    [type] => {$crate::compiler::token::TokenKind::Type};
-    [sleep] => {$crate::compiler::token::TokenKind::Sleep};
+    [Move] => {$crate::compiler::token::TokenKind::Move};
+    [Tap] => {$crate::compiler::token::TokenKind::Tap};
+    [Press] => {$crate::compiler::token::TokenKind::Press};
+    [Release] => {$crate::compiler::token::TokenKind::Release};
+    [Sleep] => {$crate::compiler::token::TokenKind::Sleep};
 
     // Delimiters
     [,] => {$crate::compiler::token::TokenKind::Comma};
@@ -117,49 +107,17 @@ macro_rules! TK {
     [EOF] => {$crate::compiler::token::TokenKind::EOF};
 
     // Multiple characters
-    [string] => {$crate::compiler::token::TokenKind::String};
-    [number] => {$crate::compiler::token::TokenKind::Number};
-    [comment] => {$crate::compiler::token::TokenKind::Comment};
+    [String] => {$crate::compiler::token::TokenKind::String};
+    [Number] => {$crate::compiler::token::TokenKind::Number};
+    [Comment] => {$crate::compiler::token::TokenKind::Comment};
 
     // Misc
     [Error] => {$crate::compiler::token::TokenKind::Error};
 }
 
+
 impl std::fmt::Display for TokenKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}",
-            match self {
-                // Operators
-                TK![def] => "def",
-                TK![=] => "=",
-
-                // Actions
-                TK![LMBC] => "LMB_click",
-                TK![RMBC] => "RMB_click",
-                TK![type] => "type",
-                TK![sleep] => "sleep",
-
-                // Delimiters
-                TK!['"'] => "\"",
-                TK![,] => ",",
-                TK![EOI] => ";\n",
-                TK![EOF] => "EOF",
-
-                // Brackets
-                TK!['['] => "[",
-                TK![']'] => "]",
-                TK!['('] => "(",
-                TK![')'] => ")",
-
-                // Multiple characters
-                TK![string] => "string",
-                TK![number] => "number",
-                TK![comment] => "// comment",
-
-                // Misc.
-                TK![Error] => "Error",
-            }
-        )
+        write!(f, "{:?}", self)
     }
 }
-    */

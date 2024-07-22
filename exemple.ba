@@ -3,26 +3,10 @@ define LAYOUT_IMAGE = image.png
 define ACTION_DELAY = 50
 define GLOBAL_HALT_KEY = Esc
 
-// Déplacer la souris à "x, y"
-// x : largueur
-// y : longueur
-// "0, 0" en bas à gauche
-moveTo 0, 0
-
-// Click de gauche
-tap LMB
-
-// Appuyer sur la touche "A"
-press A
-
-// Attendre 2 secondes
-wait 2
-
-// Relacher la touche "A"
-release a
-
-// Taper la touche "B"
-tap b
-
-
-
+// moves the mouse to 1910
+Move 1910, 1089
+// sleep 2 seconds
+Wait 2
+Press LMB
+Wait 1
+Release LMB
