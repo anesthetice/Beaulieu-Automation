@@ -25,8 +25,9 @@ fn match_regex(input: &str, re: &Regex) -> Option<usize> {
 
 // match '//' then anything except a new line 0 or more times until a newline is met
 static WORD_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[a-zA-z][a-zA-z0-9]*"#).unwrap());
+static POSITION_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^\d+ *, *\d+"#).unwrap()); 
 static STRING_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(^")(\\"|\\\\|[^\\"\n])*(")"#).unwrap());
-static NUMBER_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^((\d+(\.\d+)?)|(\.\d+))"#).unwrap());
+static FLOAT_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^((\d+(\.\d+)?)|(\.\d+))"#).unwrap());
 static COMMENT_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^(//[^\n]*)"#).unwrap());
 
 // the higher the rule the higher its importance
@@ -81,12 +82,16 @@ pub(super) fn get_rules() -> Vec<Rule> {
             matches: |input| match_regex(input, &WORD_RE),
         },
         Rule {
+            kind: TK![Position],
+            matches: |input| match_regex(input, &POSITION_RE),
+        },
+        Rule {
             kind: TK![String],
             matches: |input| match_regex(input, &STRING_RE),
         },
         Rule {
-            kind: TK![Number],
-            matches: |input| match_regex(input, &NUMBER_RE),
+            kind: TK![Float],
+            matches: |input| match_regex(input, &FLOAT_RE),
         },
         Rule {
             kind: TK![Comment],

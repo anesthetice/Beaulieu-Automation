@@ -82,8 +82,9 @@ pub(super) enum TokenKind {
 
     // Multiple characters
     Word,
+    Position,
     String,
-    Number,
+    Float,
     Comment,
 
     // Misc.
@@ -112,8 +113,9 @@ macro_rules! TK {
 
     // Multiple characters
     [Word] => {$crate::compiler::token::TokenKind::Word};
+    [Position] => {$crate::compiler::token::TokenKind::Position};
     [String] => {$crate::compiler::token::TokenKind::String};
-    [Number] => {$crate::compiler::token::TokenKind::Number};
+    [Float] => {$crate::compiler::token::TokenKind::Float};
     [Comment] => {$crate::compiler::token::TokenKind::Comment};
 
     // Misc

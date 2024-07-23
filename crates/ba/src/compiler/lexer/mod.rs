@@ -71,8 +71,6 @@ impl<'input> Lexer<'input> {
         self.position = start + len;
         Token{kind: TK![Error], span: Span {start, end: start + len}}
     }
-    
-    
 }
 
 impl<'input> Iterator for Lexer<'input> {
@@ -104,14 +102,15 @@ mod tests {
 
     #[test]
     fn short() {
-        let input: &str = "// Comment abcd\ndefine RESOLUTION = 1920, 1080\nMove 1910, 1070\n";
+        let input: &str = "// Comment abcd\ndefine RESOLUTION = 1920, 1080\nPress LMB\nSleep 4.3";
         let mut lexer = Lexer::new(input);
         let token_kinds: Vec<TokenKind> = lexer.tokenize().into_iter().map(|token| token.kind).collect();
         assert_eq!(
             token_kinds,
             vec![
-                TK![Comment], TK![EOI], TK![def], TK![ws], TK![Word], TK![ws], TK![=], TK![ws], TK![Number], TK![,], TK![ws], TK![Number],
-                TK![EOI], TK![Move], TK![ws], TK![Number], TK![,], TK![ws], TK![Number], TK![EOI], TK![EOF]
+                TK![Comment], TK![EOI], TK![def], TK![ws], TK![Word], TK![ws], TK![=], TK![ws], TK![Position], TK![EOI], 
+                TK![Press], TK![ws], TK![Word], TK![EOI],
+                TK![Sleep], TK![ws], TK![Float], TK![EOF]
             ]
         )
     }
@@ -124,9 +123,9 @@ mod tests {
         assert_eq!(
             token_kinds,
             vec![
-                TK![Comment], TK![EOI], TK![def], TK![ws], TK![Word], TK![=], TK![Number], TK![,], TK![Number], TK![EOI],
+                TK![Comment], TK![EOI], TK![def], TK![ws], TK![Word], TK![=], TK![Position], TK![EOI], 
                 TK![Move], TK![EOI], TK![Tap], TK![EOI], TK![Press], TK![ws], TK![Word], TK![EOI],
-                TK![Release], TK![ws], TK![Word], TK![EOI], TK![Sleep], TK![ws], TK![Number], TK![EOI],
+                TK![Release], TK![ws], TK![Word], TK![EOI], TK![Sleep], TK![ws], TK![Float], TK![EOI],
                 TK![Type], TK![ws], TK![String], TK![EOF]
             ]
         )
@@ -134,5 +133,5 @@ mod tests {
 }
 
 pub fn test() {
-    
+
 }

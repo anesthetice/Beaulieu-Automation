@@ -2,6 +2,7 @@ mod cli;
 mod compiler;
 mod dirs;
 mod keymap;
+mod mousemap;
 
 use anyhow::Context;
 use tracing::{info, level_filters::LevelFilter};
@@ -121,6 +122,5 @@ fn main() -> anyhow::Result<()> {
     let width = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(0)) };
     let height = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(1)) };
     tracing::info!("primary monitor {width}x{height}");
-
     Ok(())
 }

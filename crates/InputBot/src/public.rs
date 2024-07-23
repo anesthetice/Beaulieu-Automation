@@ -515,7 +515,6 @@ impl MouseButton {
             .insert(self, Bind::Normal(Arc::new(callback)));
     }
 
-    #[cfg(target_os = "windows")]
     pub fn bind_release<F: Fn() + Send + Sync + 'static>(self, callback: F) {
         MOUSE_RELEASE_BINDS
             .lock()
@@ -551,7 +550,6 @@ impl MouseButton {
         }
     }
 
-    #[cfg(target_os = "windows")]
     pub fn bind_all_release<F: Fn(MouseButton) + Send + Sync + Clone + 'static>(callback: F) {
         for btn in MouseButton::iter() {
             let callback = callback.clone();
