@@ -60,7 +60,7 @@ impl std::ops::Index<Span> for str {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) enum TokenKind {
     // Operators
     Define,
@@ -72,7 +72,7 @@ pub(super) enum TokenKind {
     Press,
     Release,
     Sleep,
-    Typewrite,
+    Type,
 
     // Delimiters
     Whitespace,
@@ -81,9 +81,10 @@ pub(super) enum TokenKind {
     EOF, // end of file
 
     // Multiple characters
+    Word,
     String,
-    Comment,
     Number,
+    Comment,
 
     // Misc.
     Error,
@@ -101,6 +102,7 @@ macro_rules! TK {
     [Press] => {$crate::compiler::token::TokenKind::Press};
     [Release] => {$crate::compiler::token::TokenKind::Release};
     [Sleep] => {$crate::compiler::token::TokenKind::Sleep};
+    [Type] => {$crate::compiler::token::TokenKind::Type};
 
     // Delimiters
     [ws] => {$crate::compiler::token::TokenKind::Whitespace};
@@ -109,6 +111,7 @@ macro_rules! TK {
     [EOF] => {$crate::compiler::token::TokenKind::EOF};
 
     // Multiple characters
+    [Word] => {$crate::compiler::token::TokenKind::Word};
     [String] => {$crate::compiler::token::TokenKind::String};
     [Number] => {$crate::compiler::token::TokenKind::Number};
     [Comment] => {$crate::compiler::token::TokenKind::Comment};

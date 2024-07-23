@@ -67,6 +67,7 @@ impl<'input> Lexer<'input> {
             .map(|(pos, _)| pos)
             .unwrap_or_else(|| input.len());
 
+        tracing::error!("Unknown token '{}' on line {}", &input[0..len], self.line);
         self.position = start + len;
         Token{kind: TK![Error], span: Span {start, end: start + len}}
     }
@@ -96,11 +97,41 @@ impl<'input> Iterator for Lexer<'input> {
     }
 }
 
-pub fn test() {
-    let input: &str = "// Simple comment\ndefine RESOLUTION = 1920, 1080\nMove 1910, 1923\n";
-    let mut lexer = Lexer::new(input);
-    let tokens: Vec<Token> = lexer.tokenize();
+#[cfg(test)]
+mod tests {
+    use crate::TK;
+    use super::{Lexer, TokenKind};
 
-    println!("{:#?}", lexer);
-    println!("{:#?}", tokens);
+    #[test]
+    fn short() {
+        let input: &str = "// Comment abcd\ndefine RESOLUTION = 1920, 1080\nMove 1910, 1070\n";
+        let mut lexer = Lexer::new(input);
+        let token_kinds: Vec<TokenKind> = lexer.tokenize().into_iter().map(|token| token.kind).collect();
+        assert_eq!(
+            token_kinds,
+            vec![
+                TK![Comment], TK![EOI], TK![def], TK![ws], TK![Word], TK![ws], TK![=], TK![ws], TK![Number], TK![,], TK![ws], TK![Number],
+                TK![EOI], TK![Move], TK![ws], TK![Number], TK![,], TK![ws], TK![Number], TK![EOI], TK![EOF]
+            ]
+        )
+    }
+
+    #[test]
+    fn long() {
+        let input: &str = "// Comment\ndefine RESOLUTION=1920,1080\nMove\nTap\nPress LMB\nRelease LMB\nSleep 4.1\nType \"a simple test\"";
+        let mut lexer = Lexer::new(input);
+        let token_kinds: Vec<TokenKind> = lexer.tokenize().into_iter().map(|token| token.kind).collect();
+        assert_eq!(
+            token_kinds,
+            vec![
+                TK![Comment], TK![EOI], TK![def], TK![ws], TK![Word], TK![=], TK![Number], TK![,], TK![Number], TK![EOI],
+                TK![Move], TK![EOI], TK![Tap], TK![EOI], TK![Press], TK![ws], TK![Word], TK![EOI],
+                TK![Release], TK![ws], TK![Word], TK![EOI], TK![Sleep], TK![ws], TK![Number], TK![EOI],
+                TK![Type], TK![ws], TK![String], TK![EOF]
+            ]
+        )
+    }
+}
+
+pub fn test() {
 }

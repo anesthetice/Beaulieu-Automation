@@ -24,9 +24,10 @@ fn match_regex(input: &str, re: &Regex) -> Option<usize> {
 }
 
 // match '//' then anything except a new line 0 or more times until a newline is met
-static COMMENT_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^(//[^\n]*)"#).unwrap());
-static STRING_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[a-zA-z][a-zA-z0-9]*"#).unwrap());
+static WORD_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[a-zA-z][a-zA-z0-9]*"#).unwrap());
+static STRING_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(^")(\\"|\\\\|[^\\"\n])*(")"#).unwrap());
 static NUMBER_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^((\d+(\.\d+)?)|(\.\d+))"#).unwrap());
+static COMMENT_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^(//[^\n]*)"#).unwrap());
 
 // the higher the rule the higher its importance
 pub(super) fn get_rules() -> Vec<Rule> {
@@ -60,8 +61,8 @@ pub(super) fn get_rules() -> Vec<Rule> {
             matches: |input| match_keyword(input, "Sleep"),
         },
         Rule {
-            kind: TK![Sleep],
-            matches: |input| match_keyword(input, "Typewrite"),
+            kind: TK![Type],
+            matches: |input| match_keyword(input, "Type"),
         },
         Rule {
             kind: TK![,],
@@ -76,8 +77,8 @@ pub(super) fn get_rules() -> Vec<Rule> {
             matches: |input| match_keyword(input, "\n"),
         },
         Rule {
-            kind: TK![Comment],
-            matches: |input| match_regex(input, &COMMENT_RE),
+            kind: TK![Word],
+            matches: |input| match_regex(input, &WORD_RE),
         },
         Rule {
             kind: TK![String],
@@ -86,6 +87,10 @@ pub(super) fn get_rules() -> Vec<Rule> {
         Rule {
             kind: TK![Number],
             matches: |input| match_regex(input, &NUMBER_RE),
+        },
+        Rule {
+            kind: TK![Comment],
+            matches: |input| match_regex(input, &COMMENT_RE),
         },
     ]
 }
