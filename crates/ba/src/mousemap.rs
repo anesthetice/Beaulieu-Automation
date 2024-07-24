@@ -24,7 +24,7 @@ impl MouseMap {
         Ok(())
     }
 
-    fn get() -> &'static Self {
+    pub fn get() -> &'static Self {
         MOUSEMAP.get().unwrap()
     }
 }

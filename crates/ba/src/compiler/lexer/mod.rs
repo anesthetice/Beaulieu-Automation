@@ -17,7 +17,7 @@ pub struct Lexer<'input> {
 }
 
 impl<'input> Lexer<'input> {
-    fn new(input: &'input str) -> Self {
+    pub(super) fn new(input: &'input str) -> Self {
         Self {
             input,
             position: 0,
@@ -27,7 +27,7 @@ impl<'input> Lexer<'input> {
         }
     }
 
-    pub fn tokenize(&mut self) -> Vec<Token> {
+    pub(super) fn tokenize(&mut self) -> Vec<Token> {
         self.collect()
     }
 

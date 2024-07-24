@@ -24,7 +24,7 @@ fn match_regex(input: &str, re: &Regex) -> Option<usize> {
 }
 
 // match '//' then anything except a new line 0 or more times until a newline is met
-static WORD_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[a-zA-z][a-zA-z0-9]*"#).unwrap());
+static WORD_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[a-zA-z][a-zA-z0-9_]*"#).unwrap());
 static POSITION_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^\d+ *, *\d+"#).unwrap()); 
 static STRING_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(^")(\\"|\\\\|[^\\"\n])*(")"#).unwrap());
 static FLOAT_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^((\d+(\.\d+)?)|(\.\d+))"#).unwrap());

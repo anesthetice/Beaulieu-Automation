@@ -623,13 +623,6 @@ impl<'de> Deserialize<'de> for MouseButton {
         std::str::FromStr::from_str(&s).map_err(Error::custom)
     }
 }
-
-pub struct KeySequence<'a>(pub &'a str);
-
-impl KeySequence<'_> {
-    pub fn send(&self) {}
-}
-
 /// Stops `handle_input_events()` (threadsafe)
 pub fn stop_handling_input_events() {
     HANDLE_EVENTS.store(false, Ordering::Relaxed);

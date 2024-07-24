@@ -24,7 +24,7 @@ impl KeyMap {
         Ok(())
     }
 
-    fn get() -> &'static Self {
+    pub fn get() -> &'static Self {
         KEYMAP.get().unwrap()
     }
 }

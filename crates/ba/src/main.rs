@@ -5,11 +5,14 @@ mod keymap;
 mod mousemap;
 
 use anyhow::Context;
+use cli::{
+    process_new_subcommand, process_run_subcommand, ProcessOutput as PO
+};
 use tracing::{info, level_filters::LevelFilter};
 use std::ffi::CStr;
 
 use tracing_subscriber::{
-    fmt::{self, time::Uptime}, layer::SubscriberExt, Layer, Registry
+    fmt::{self, time::Uptime}, layer::SubscriberExt, Layer, Registry, EnvFilter
 };
 use windows::Win32::UI::{
     Input::KeyboardAndMouse::GetKeyboardLayoutNameA,
@@ -122,5 +125,19 @@ fn main() -> anyhow::Result<()> {
     let width = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(0)) };
     let height = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(1)) };
     tracing::info!("primary monitor {width}x{height}");
+
+    let command = cli::cli();
+    let arg_matches = command.get_matches();
+
+    match process_new_subcommand(&arg_matches)? {
+        PO::Continue => (),
+        PO::Exit => return Ok(()),
+    }
+
+    match process_run_subcommand(&arg_matches)? {
+        PO::Continue => (),
+        PO::Exit => return Ok(()),
+    }
+
     Ok(())
 }
