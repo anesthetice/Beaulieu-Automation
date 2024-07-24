@@ -19,3 +19,24 @@ impl TryFrom<&str> for Button {
         }
     }
 }
+
+impl Button {
+    pub(super) fn tap(&self) {
+        match self {
+            Self::K(a) => a.tap(),
+            Self::M(a) => a.tap(),
+        }
+    }
+    pub(super) fn press(&self) {
+        match self {
+            Self::K(a) => a.press(),
+            Self::M(a) => a.press(),
+        }
+    }
+    pub(super) fn release(&self) {
+        match self {
+            Self::K(a) => a.release(),
+            Self::M(a) => a.release(),
+        }
+    }
+}

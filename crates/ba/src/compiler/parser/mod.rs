@@ -2,10 +2,9 @@ use std::iter::Peekable;
 
 use ast::{token_to_button, token_to_float, token_to_position, token_to_string};
 
-use super::{lexer::Lexer, Token, TokenKind};
+use super::{expression::Expression, lexer::Lexer, Token, TokenKind};
 use crate::TK;
 
-mod button;
 mod ast;
 
 pub struct Parser<'input, I>
@@ -53,15 +52,15 @@ where I: Iterator<Item = Token>,
         Ok(token)
     }
 
-    pub fn process(&mut self) -> anyhow::Result<Vec<ast::Expression>> {
-        let mut expressions: Vec<ast::Expression> = Vec::new();
+    pub fn process(&mut self) -> anyhow::Result<Vec<Expression>> {
+        let mut expressions: Vec<Expression> = Vec::new();
         while let Some(expr) = self.parse_expression()? {
             expressions.push(expr);
         }
         Ok(expressions)
     }
 
-    fn parse_expression(&mut self) -> anyhow::Result<Option<ast::Expression>> {
+    fn parse_expression(&mut self) -> anyhow::Result<Option<Expression>> {
         match self.peek() 
         {
             TK![def] => {
@@ -72,15 +71,15 @@ where I: Iterator<Item = Token>,
                 match name.as_str() {
                     "RESOLUTION" => {
                         let resolution = token_to_position(self.consume(TK![Position])?, &self.input)?;
-                        Ok(Some(ast::Expression::Resolution(resolution)))
+                        Ok(Some(Expression::Resolution(resolution)))
                     },
                     "DELAY_BETWEEN_ACTIONS" => {
                         let milliseconds = token_to_float(self.consume(TK![Float])?, &self.input)? as u64;
-                        Ok(Some(ast::Expression::DelayBetweenActions(milliseconds)))
+                        Ok(Some(Expression::DelayBetweenActions(milliseconds)))
                     },
-                    "GLOBAL_HALT_KEY" => {
+                    "GLOBAL_HALT_BUTTON" => {
                         let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
-                        Ok(Some(ast::Expression::GlobalHaltButton(button)))
+                        Ok(Some(Expression::GlobalHaltButton(button)))
                     },
                     _ => {
                         tracing::error!("Failed to assing the unknown global definition '{}'", &name);
@@ -91,32 +90,32 @@ where I: Iterator<Item = Token>,
             TK![Move] => {
                 let _ = self.consume(TK![Move]);
                 let position = token_to_position(self.consume(TK![Position])?, &self.input)?;
-                Ok(Some(ast::Expression::Move(position)))
+                Ok(Some(Expression::Move(position)))
             },
             TK![Tap] => {
                 let _ = self.consume(TK![Tap]);
                 let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
-                Ok(Some(ast::Expression::Tap(button)))
+                Ok(Some(Expression::Tap(button)))
             },
             TK![Press] => {
                 let _ = self.consume(TK![Press]);
                 let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
-                Ok(Some(ast::Expression::Press(button)))
+                Ok(Some(Expression::Press(button)))
             },
             TK![Release] => {
                 let _ = self.consume(TK![Release]);
                 let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
-                Ok(Some(ast::Expression::Release(button)))
+                Ok(Some(Expression::Release(button)))
             },
             TK![Sleep] => {
                 let _ = self.consume(TK![Sleep]);
                 let time = token_to_float(self.consume(TK![Float])?, &self.input).unwrap();
-                Ok(Some(ast::Expression::Sleep(time)))
+                Ok(Some(Expression::Sleep(time)))
             },
             TK![Type] => {
                 let _ = self.consume(TK![Type]);
                 let string = token_to_string(self.consume(TK![String])?, &self.input).unwrap();
-                Ok(Some(ast::Expression::Type(string)))
+                Ok(Some(Expression::Type(string)))
             }
             TK![EOI] => {
                 let _ = self.consume(TK![EOI]);

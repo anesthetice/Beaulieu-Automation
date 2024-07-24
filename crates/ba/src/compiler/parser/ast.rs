@@ -1,19 +1,4 @@
-use crate::compiler::{Span, Token};
-use super::button::Button;
-
-#[derive(Debug)]
-pub enum Expression {
-    Resolution((i32, i32)),
-    DelayBetweenActions(u64),
-    GlobalHaltButton(Button),
-    Move((i32, i32)),
-    Tap(Button),
-    Press(Button),
-    Release(Button),
-    Sleep(f64),
-    Type(String),
-}
-
+use crate::compiler::{button::Button, Span, Token};
 // TokenKind check done by consume
 pub(super) fn token_to_button(token: Token, input: &str) -> anyhow::Result<Button> {
     let input = &input[token.span];
