@@ -56,7 +56,7 @@ impl From<Vec<(String, MouseButton)>> for MouseMap {
     }
 }
 
-static DEFAULT_MOUSEMAP: [(&'static str, MouseButton); 5] = [
+pub static DEFAULT_MOUSEMAP: [(&'static str, MouseButton); 5] = [
     ("lmb", LeftButton),
     ("rmb", RightButton),
     ("mmb", MiddleButton),

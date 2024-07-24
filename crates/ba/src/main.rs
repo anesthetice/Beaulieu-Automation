@@ -124,17 +124,17 @@ fn main() -> anyhow::Result<()> {
     // get primary monitor width and height
     let width = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(0)) };
     let height = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(1)) };
-    tracing::info!("primary monitor {width}x{height}");
+    tracing::info!("Primary monitor detected - {width}x{height}");
 
     let command = cli::cli();
     let arg_matches = command.get_matches();
 
-    match process_new_subcommand(&arg_matches)? {
+    match process_new_subcommand(&arg_matches, (width, height))? {
         PO::Continue => (),
         PO::Exit => return Ok(()),
     }
 
-    match process_run_subcommand(&arg_matches)? {
+    match process_run_subcommand(&arg_matches, (width, height))? {
         PO::Continue => (),
         PO::Exit => return Ok(()),
     }

@@ -21,7 +21,7 @@ pub(super) fn run_subcommand() -> Command {
         )
 }
 
-pub fn process_run_subcommand(arg_matches: &ArgMatches) -> anyhow::Result<PO>
+pub fn process_run_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) -> anyhow::Result<PO>
 {
     let Some(arg_matches) = arg_matches.subcommand_matches("run") else {
         return Ok(PO::Continue);

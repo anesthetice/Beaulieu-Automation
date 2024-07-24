@@ -50,9 +50,7 @@ impl KeybdKey {
         send_keybd_input(KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, self);
     }
 
-    pub fn tap(self) {
-
-    }
+    pub fn tap(self) {}
 
     /// Returns true if a keyboard key which supports toggling (ScrollLock, NumLock,
     /// CapsLock) is on.

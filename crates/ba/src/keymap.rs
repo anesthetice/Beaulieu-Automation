@@ -56,7 +56,7 @@ impl From<Vec<(String, KeybdKey)>> for KeyMap {
     }
 }
 
-static DEFAULT_KEYMAP: [(&'static str, KeybdKey); 148] = [
+pub static DEFAULT_KEYMAP: [(&'static str, KeybdKey); 148] = [
     ("backspace", BackspaceKey),
     ("tab", TabKey),
     ("enter", EnterKey),
