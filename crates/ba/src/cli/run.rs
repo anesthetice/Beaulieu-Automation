@@ -67,15 +67,13 @@ pub fn process_run_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) 
     let mut input: String = String::new();
     std::fs::OpenOptions::new()
         .read(true)
-        .open(&keymap_filepath)
+        .open(&main_filepath)
         .context(format!("Failed to read/open file with path '{}'", main_filepath.display()))?
         .read_to_string(&mut input)?;
-    
-    let mut parser = crate::compiler::Parser::new(&input);
-    for _ in 0..5 {
-        dbg!(parser.parse_expression());
-    }
 
+    let mut parser = crate::compiler::Parser::new(&input);
+    let parsed = parser.process()?;
+    println!("{:#?}", parsed);
 
     Ok(PO::Exit)
 }

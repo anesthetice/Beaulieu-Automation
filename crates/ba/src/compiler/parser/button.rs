@@ -6,12 +6,6 @@ pub(super) enum Button {
     M(MouseButton),
 }
 
-pub(super) enum ButtonAction {
-    Press,
-    Release,
-    Tap,
-}
-
 impl TryFrom<&str> for Button {
     type Error = anyhow::Error;
     fn try_from(value: &str) -> Result<Self, Self::Error> {

@@ -40,89 +40,99 @@ where I: Iterator<Item = Token>,
         self.tokens.peek().map(|token| token.kind).unwrap_or(TK![EOF])
     }
 
-    // Check if the next token is some `kind` of token.
-    fn at(&mut self, kind: TokenKind) -> bool {
-        self.peek() == kind
-    }
-
     // Get the next token.
     fn next(&mut self) -> Option<Token> {
         self.tokens.next()
     }
 
-    // Move forward one token in the input and check 
-    // that we pass the kind of token we expect.
-    fn consume(&mut self, expected: TokenKind) {
-        let token = self.next().expect(&format!(
-            "Expected to consume `{}`, but there was no next token",
-            expected
-        ));
-        assert_eq!(
-            token.kind, expected,
-            "Expected to consume `{}`, but found `{}`",
-            expected, token.kind
-        );
+    fn consume(&mut self, expected: TokenKind) -> anyhow::Result<Token> {
+        let token = self.next().ok_or(anyhow::anyhow!("Expected to consume '{}', but there was no next token", expected))?;
+        if token.kind != expected {
+            Err(anyhow::anyhow!("Expected to consume '{}', but found '{}'", expected, token.kind))?;
+        }
+        Ok(token)
     }
 
-    pub fn parse_expression(&mut self) -> ast::Expression {
-        match self.peek() {
+    pub fn process(&mut self) -> anyhow::Result<Vec<ast::Expression>> {
+        let mut expressions: Vec<ast::Expression> = Vec::new();
+        while let Some(expr) = self.parse_expression()? {
+            expressions.push(expr);
+        }
+        Ok(expressions)
+    }
+
+    fn parse_expression(&mut self) -> anyhow::Result<Option<ast::Expression>> {
+        match self.peek() 
+        {
             TK![def] => {
-                self.consume(TK![def]);
-                let name_token = self.next().expect("missing identifier for defintion");
+                let _ = self.consume(TK![def])?;
+                let name_token = self.consume(TK![Word])?;
                 let name = self.text(name_token).to_uppercase();
-                self.consume(TK![=]);
+                let _ = self.consume(TK![=]);
                 match name.as_str() {
                     "RESOLUTION" => {
-                        let resolution = token_to_position(self.next().unwrap(), &self.input).unwrap();
-                        ast::Expression::Resolution(resolution)
+                        let resolution = token_to_position(self.consume(TK![Position])?, &self.input)?;
+                        Ok(Some(ast::Expression::Resolution(resolution)))
                     },
                     "DELAY_BETWEEN_ACTIONS" => {
-                        let milliseconds = token_to_float(self.next().unwrap(), &self.input).unwrap() as u64;
-                        ast::Expression::DelayBetweenActions(milliseconds)
+                        let milliseconds = token_to_float(self.consume(TK![Float])?, &self.input)? as u64;
+                        Ok(Some(ast::Expression::DelayBetweenActions(milliseconds)))
                     },
                     "GLOBAL_HALT_KEY" => {
-                        let button = token_to_button(self.next().unwrap(), &self.input).unwrap();
-                        ast::Expression::GlobalHaltButton(button)
+                        let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
+                        Ok(Some(ast::Expression::GlobalHaltButton(button)))
                     },
                     _ => {
-                        panic!("unknown")
+                        tracing::error!("Failed to assing the unknown global definition '{}'", &name);
+                        Err(anyhow::anyhow!("Unkown definition"))
                     }
                 }
             }
+            TK![Move] => {
+                let _ = self.consume(TK![Move]);
+                let position = token_to_position(self.consume(TK![Position])?, &self.input)?;
+                Ok(Some(ast::Expression::Move(position)))
+            },
             TK![Tap] => {
-                self.consume(TK![Tap]);
-                let button = token_to_button(self.next().unwrap(), &self.input).unwrap();
-                ast::Expression::Tap(button)
+                let _ = self.consume(TK![Tap]);
+                let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
+                Ok(Some(ast::Expression::Tap(button)))
             },
             TK![Press] => {
-                self.consume(TK![Press]);
-                let button = token_to_button(self.next().unwrap(), &self.input).unwrap();
-                ast::Expression::Press(button)
+                let _ = self.consume(TK![Press]);
+                let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
+                Ok(Some(ast::Expression::Press(button)))
             },
             TK![Release] => {
-                self.consume(TK![Release]);
-                let button = token_to_button(self.next().unwrap(), &self.input).unwrap();
-                ast::Expression::Release(button)
+                let _ = self.consume(TK![Release]);
+                let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
+                Ok(Some(ast::Expression::Release(button)))
             },
             TK![Sleep] => {
-                self.consume(TK![Sleep]);
-                let time = token_to_float(self.next().unwrap(), &self.input).unwrap();
-                ast::Expression::Sleep(time)
+                let _ = self.consume(TK![Sleep]);
+                let time = token_to_float(self.consume(TK![Float])?, &self.input).unwrap();
+                Ok(Some(ast::Expression::Sleep(time)))
             },
             TK![Type] => {
-                self.consume(TK![Type]);
-                let string = token_to_string(self.next().unwrap(), &self.input).unwrap();
-                ast::Expression::Type(string)
+                let _ = self.consume(TK![Type]);
+                let string = token_to_string(self.consume(TK![String])?, &self.input).unwrap();
+                Ok(Some(ast::Expression::Type(string)))
             }
             TK![EOI] => {
-                self.consume(TK![EOI]);
+                let _ = self.consume(TK![EOI]);
                 self.parse_expression()
             }
+            TK![EOF] => {
+                Ok(None)
+            }
             undefined => {
-                panic!("undefined behavior for TokenKind '{:?}'", undefined)
+                tracing::error!("Undefined parsing behavior for TokenKind '{:?}'", undefined);
+                Err(anyhow::anyhow!("Parsing failed"))
             }
         }
     }
+
+
 }
 
 pub struct TokenIter<'input> {
