@@ -64,7 +64,7 @@ pub fn process_new_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) 
         .open(&main_filepath)
         .context(format!("Failed to create main file with path '{}'", &main_filepath.display()))?
         .write_all(
-            format!("// Resolution of the primary monitor for which this script was created\n// DO NOT MODIFY\ndefine RESOLUTION = {}, {}\n\n// The standard delay between actions given in milliseconds\ndefine DELAY_BETWEEN_ACTIONS = 50\n\n// The key used to stop the application if required\ndefine GLOBAL_HALT_KEY =  Esc", resolution.0, resolution.1)
+            format!("// Resolution of the primary monitor for which this script was created\n// DO NOT MODIFY\ndefine RESOLUTION = {}, {}\n\n// The standard delay between actions given in milliseconds\ndefine DELAY_BETWEEN_ACTIONS = 50\n\n// The button used to stop the application if required\ndefine GLOBAL_HALT_BUTTON =  Esc", resolution.0, resolution.1)
                     .as_bytes()
         )?;
     tracing::debug!("Created main.ba");

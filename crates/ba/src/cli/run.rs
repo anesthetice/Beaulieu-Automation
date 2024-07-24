@@ -1,5 +1,7 @@
 use anyhow::Context;
 
+use crate::compiler::Engine;
+
 use super::*;
 use std::{fs::OpenOptions, io::Read, path::{absolute, PathBuf}};
 
@@ -74,6 +76,9 @@ pub fn process_run_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) 
     let mut parser = crate::compiler::Parser::new(&input);
     let parsed = parser.process()?;
     println!("{:#?}", parsed);
+
+    let engine = Engine::new();
+    engine.start();
 
     Ok(PO::Exit)
 }

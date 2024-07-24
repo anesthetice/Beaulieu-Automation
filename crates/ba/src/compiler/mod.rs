@@ -9,3 +9,4 @@ use token::*;
 
 // exports
 pub use parser::Parser;
+pub use engine::Engine;

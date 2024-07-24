@@ -24,7 +24,7 @@ impl Expression {
             Self::Press(button) => button.press(),
             Self::Release(button) => button.release(),
             Self::Sleep(float) => std::thread::sleep(std::time::Duration::from_secs_f64(*float)),
-            Self::Type(string) => (),
+            Self::Type(string) => inputbot::send_sequence(string),
         }
     }
 }

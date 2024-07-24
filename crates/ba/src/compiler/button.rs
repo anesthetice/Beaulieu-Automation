@@ -1,6 +1,6 @@
 use inputbot::{KeybdKey, MouseButton};
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub(super) enum Button {
     K(KeybdKey),
     M(MouseButton),
@@ -37,6 +37,18 @@ impl Button {
         match self {
             Self::K(a) => a.release(),
             Self::M(a) => a.release(),
+        }
+    }
+    pub(super) fn bind<F: Fn() + Send + Sync + 'static>(self, callback: F) {
+        match self {
+            Self::K(a) => a.bind(callback),
+            Self::M(a) => a.bind(callback),
+        }
+    }
+    pub(super) fn unbind(self) {
+        match self {
+            Self::K(a) => a.unbind(),
+            Self::M(a) => a.unbind(),
         }
     }
 }
