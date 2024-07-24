@@ -10,15 +10,15 @@ pub struct MouseMap {
 }
 
 impl MouseMap {
-    fn init(mousemap_filepath: &Path) -> anyhow::Result<()> {
+    pub fn init(mousemap_filepath: &Path) -> anyhow::Result<()> {
         let mut data = Vec::new();
-        let mut file = std::fs::OpenOptions::new()
+        std::fs::OpenOptions::new()
             .create(false)
             .read(true)
             .open(&mousemap_filepath)
-            .context(format!("Failed to open file with path '{}'", mousemap_filepath.display()))?;
+            .context(format!("Failed to read/open file with path '{}'", mousemap_filepath.display()))?
+            .read_to_end(&mut data)?;
 
-        file.read_to_end(&mut data)?;
         let data: Vec<(String, MouseButton)> = serde_json::from_slice(&data)?;
         MOUSEMAP.set(MouseMap::from(data)).unwrap();
         Ok(())

@@ -1,4 +1,6 @@
 use inputbot::{KeybdKey, MouseButton};
+
+#[derive(Debug)]
 pub(super) enum Button {
     K(KeybdKey),
     M(MouseButton),
@@ -10,15 +12,16 @@ pub(super) enum ButtonAction {
     Tap,
 }
 
-impl Button {
-    fn from_str(value: &str) -> Option<Self> {
+impl TryFrom<&str> for Button {
+    type Error = anyhow::Error;
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
         let value = value.to_lowercase();
         if let Some(key) = crate::keymap::KeyMap::get().get(&value) {
-            Some(Button::K(key.clone()))
+            Ok(Button::K(key.clone()))
         } else if let Some(button) = crate::mousemap::MouseMap::get().get(&value) {
-            Some(Button::M(button.clone()))
+            Ok(Button::M(button.clone()))
         } else {
-            None
+            Err(anyhow::anyhow!("No key or mouse button found associated with '{}'", value))
         }
     }
 }

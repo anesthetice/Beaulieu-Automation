@@ -1,6 +1,9 @@
-pub mod lexer;
+mod lexer;
 mod parser;
 mod token;
 mod engine;
 
 use token::*;
+
+// exports
+pub use parser::Parser;
