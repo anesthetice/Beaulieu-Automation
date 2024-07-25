@@ -3,7 +3,11 @@ use anyhow::Context;
 use crate::{keymap::DEFAULT_KEYMAP, mousemap::DEFAULT_MOUSEMAP};
 
 use super::*;
-use std::{fs::OpenOptions, io::Write, path::{absolute, PathBuf}};
+use std::{
+    fs::OpenOptions,
+    io::Write,
+    path::{absolute, PathBuf},
+};
 
 pub(super) fn new_subcommand() -> Command {
     Command::new("new")
@@ -20,8 +24,10 @@ pub(super) fn new_subcommand() -> Command {
             )
 }
 
-pub fn process_new_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) -> anyhow::Result<PO>
-{
+pub fn process_new_subcommand(
+    arg_matches: &ArgMatches,
+    resolution: (i32, i32),
+) -> anyhow::Result<PO> {
     let Some(arg_matches) = arg_matches.subcommand_matches("new") else {
         return Ok(PO::Continue);
     };
@@ -31,31 +37,39 @@ pub fn process_new_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) 
         return Ok(PO::Exit);
     };
     let absolute_path = absolute(&path)
-    .map_err(|err| {
-        tracing::warn!("Failed to absolutize given path '{}' due to '{}'", path.display(), err);
-        err
-    })
-    .unwrap_or(path.clone());
+        .map_err(|err| {
+            tracing::warn!(
+                "Failed to absolutize given path '{}' due to '{}'",
+                path.display(),
+                err
+            );
+            err
+        })
+        .unwrap_or(path.clone());
 
     if path.is_dir() {
         tracing::error!("Specified path/name already exists");
-        return Ok(PO::Exit)
+        return Ok(PO::Exit);
     } else if path.extension().is_some() {
         tracing::error!("Path required, got filepath instead");
-        return Ok(PO::Exit)
+        return Ok(PO::Exit);
     }
 
-    tracing::info!("Attempting to create new application at absolute path '{}'", absolute_path.display());
+    tracing::info!(
+        "Attempting to create new application at absolute path '{}'",
+        absolute_path.display()
+    );
 
     // create application folder
-    std::fs::create_dir(&path).context(format!("Failed to create '{}'", absolute_path.display()))?;
+    std::fs::create_dir(&path)
+        .context(format!("Failed to create '{}'", absolute_path.display()))?;
     tracing::debug!("Created application folder");
 
     // define filepaths
     let main_filepath = &path.join("main.ba");
     let keymap_filepath = &path.join("keymap.json");
-    let mousemap_filepath = &path.join("mousemap.json"); 
-    let readme_filepath = &path.join("README.md"); 
+    let mousemap_filepath = &path.join("mousemap.json");
+    let readme_filepath = &path.join("README.md");
 
     // generate main
     OpenOptions::new()
@@ -68,7 +82,7 @@ pub fn process_new_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) 
                     .as_bytes()
         )?;
     tracing::debug!("Created main.ba");
-    
+
     // generate readme
     OpenOptions::new()
         .write(true)
@@ -86,22 +100,24 @@ pub fn process_new_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) 
         .write(true)
         .create(true)
         .open(&keymap_filepath)
-        .context(format!("Failed to create keymap file with path '{}'", &keymap_filepath.display()))?
-        .write_all(
-            &serde_json::to_vec_pretty(&DEFAULT_KEYMAP[..]).unwrap()
-        )?;
+        .context(format!(
+            "Failed to create keymap file with path '{}'",
+            &keymap_filepath.display()
+        ))?
+        .write_all(&serde_json::to_vec_pretty(&DEFAULT_KEYMAP[..]).unwrap())?;
     tracing::debug!("Created keymap.json");
-    
+
     // generate mousemap
     OpenOptions::new()
         .write(true)
         .create(true)
         .open(&mousemap_filepath)
-        .context(format!("Failed to create keymap file with path '{}'", &mousemap_filepath.display()))?
-        .write_all(
-            &serde_json::to_vec_pretty(&DEFAULT_MOUSEMAP[..]).unwrap()
-        )?;    
+        .context(format!(
+            "Failed to create keymap file with path '{}'",
+            &mousemap_filepath.display()
+        ))?
+        .write_all(&serde_json::to_vec_pretty(&DEFAULT_MOUSEMAP[..]).unwrap())?;
     tracing::debug!("Created mousemap.json");
-    
+
     Ok(PO::Exit)
 }

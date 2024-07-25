@@ -16,7 +16,10 @@ impl KeyMap {
             .create(false)
             .read(true)
             .open(&keymap_filepath)
-            .context(format!("Failed to read/open file with path '{}'", keymap_filepath.display()))?
+            .context(format!(
+                "Failed to read/open file with path '{}'",
+                keymap_filepath.display()
+            ))?
             .read_to_end(&mut data)?;
 
         let data: Vec<(String, KeybdKey)> = serde_json::from_slice(&data)?;
@@ -52,7 +55,9 @@ impl From<&[(&str, KeybdKey)]> for KeyMap {
 
 impl From<Vec<(String, KeybdKey)>> for KeyMap {
     fn from(value: Vec<(String, KeybdKey)>) -> Self {
-        Self { inner: HashMap::from_iter(value.into_iter()) }
+        Self {
+            inner: HashMap::from_iter(value.into_iter()),
+        }
     }
 }
 

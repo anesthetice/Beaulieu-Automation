@@ -1,9 +1,7 @@
-use clap::{
-    Arg, ArgAction, Command, command, ArgMatches
-};
+use self::ProcessOutput as PO;
+use clap::{command, Arg, ArgAction, ArgMatches, Command};
 use new::new_subcommand;
 use run::run_subcommand;
-use self::ProcessOutput as PO;
 
 mod new;
 mod run;

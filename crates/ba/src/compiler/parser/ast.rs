@@ -15,7 +15,7 @@ pub(super) fn token_to_position(token: Token, input: &str) -> anyhow::Result<(i3
 pub(super) fn token_to_string(token: Token, input: &str) -> anyhow::Result<String> {
     let span_without_quotes = Span {
         start: token.span.start + 1,
-        end: token.span.end - 1
+        end: token.span.end - 1,
     };
     Ok(input[span_without_quotes].to_string())
 }
@@ -24,7 +24,3 @@ pub(super) fn token_to_float(token: Token, input: &str) -> anyhow::Result<f64> {
     let input = &input[token.span];
     Ok(input.parse()?)
 }
-
-
-
-

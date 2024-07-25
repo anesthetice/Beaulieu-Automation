@@ -16,7 +16,10 @@ impl MouseMap {
             .create(false)
             .read(true)
             .open(&mousemap_filepath)
-            .context(format!("Failed to read/open file with path '{}'", mousemap_filepath.display()))?
+            .context(format!(
+                "Failed to read/open file with path '{}'",
+                mousemap_filepath.display()
+            ))?
             .read_to_end(&mut data)?;
 
         let data: Vec<(String, MouseButton)> = serde_json::from_slice(&data)?;
@@ -52,7 +55,9 @@ impl From<&[(&str, MouseButton)]> for MouseMap {
 
 impl From<Vec<(String, MouseButton)>> for MouseMap {
     fn from(value: Vec<(String, MouseButton)>) -> Self {
-        Self { inner: HashMap::from_iter(value.into_iter()) }
+        Self {
+            inner: HashMap::from_iter(value.into_iter()),
+        }
     }
 }
 
@@ -61,5 +66,5 @@ pub static DEFAULT_MOUSEMAP: [(&'static str, MouseButton); 5] = [
     ("rmb", RightButton),
     ("mmb", MiddleButton),
     ("x1", X1Button),
-    ("x2", X2Button)
+    ("x2", X2Button),
 ];

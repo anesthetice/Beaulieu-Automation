@@ -10,7 +10,12 @@ use windows::Win32::{
     Foundation::{LPARAM, LRESULT, WPARAM},
     UI::{
         Input::KeyboardAndMouse::{
-            GetAsyncKeyState, GetKeyState, MapVirtualKeyW, SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT, KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP, KEYEVENTF_SCANCODE, KEYEVENTF_UNICODE, MAP_VIRTUAL_KEY_TYPE, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, MOUSEINPUT, MOUSE_EVENT_FLAGS, VIRTUAL_KEY, VK_PACKET
+            GetAsyncKeyState, GetKeyState, MapVirtualKeyW, SendInput, INPUT, INPUT_0,
+            INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT, KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP,
+            KEYEVENTF_SCANCODE, KEYEVENTF_UNICODE, MAP_VIRTUAL_KEY_TYPE, MOUSEEVENTF_HWHEEL,
+            MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP,
+            MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN,
+            MOUSEEVENTF_XUP, MOUSEINPUT, MOUSE_EVENT_FLAGS, VIRTUAL_KEY, VK_PACKET,
         },
         WindowsAndMessaging::{
             CallNextHookEx, GetCursorPos, GetMessageW, KillTimer, SetCursorPos, SetTimer,
@@ -29,20 +34,22 @@ static KEYBD_HHOOK: Lazy<AtomicPtr<HHOOK>> = Lazy::new(AtomicPtr::default);
 static MOUSE_HHOOK: Lazy<AtomicPtr<HHOOK>> = Lazy::new(AtomicPtr::default);
 
 pub fn send_sequence(input: &str) {
-    let inputs: Vec<INPUT> = input.encode_utf16().map(|code| {
-        let keybd_input = KEYBDINPUT {
-            wVk: VK_PACKET,
-            wScan: code,
-            dwFlags: KEYEVENTF_UNICODE,
-            time: 0,
-            dwExtraInfo: 0,
-        };
-        INPUT {
-            r#type: INPUT_KEYBOARD,
-            Anonymous: INPUT_0 {ki: keybd_input }
-        }
-    })
-    .collect();
+    let inputs: Vec<INPUT> = input
+        .encode_utf16()
+        .map(|code| {
+            let keybd_input = KEYBDINPUT {
+                wVk: VK_PACKET,
+                wScan: code,
+                dwFlags: KEYEVENTF_UNICODE,
+                time: 0,
+                dwExtraInfo: 0,
+            };
+            INPUT {
+                r#type: INPUT_KEYBOARD,
+                Anonymous: INPUT_0 { ki: keybd_input },
+            }
+        })
+        .collect();
 
     unsafe {
         SendInput(&inputs, std::mem::size_of::<INPUT>() as std::ffi::c_int);
@@ -67,7 +74,10 @@ impl KeybdKey {
     }
 
     pub fn tap(self) {
-        send_keybd_inputs(vec![(KEYEVENTF_SCANCODE, self), (KEYEVENTF_SCANCODE|KEYEVENTF_KEYUP, self)])
+        send_keybd_inputs(vec![
+            (KEYEVENTF_SCANCODE, self),
+            (KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP, self),
+        ])
     }
 
     /// Returns true if a keyboard key which supports toggling (ScrollLock, NumLock,
@@ -110,11 +120,26 @@ impl MouseButton {
 
     pub fn tap(self) {
         match self {
-            MouseButton::LeftButton => send_mouse_inputs(vec![(MOUSEEVENTF_LEFTDOWN, 0, 0, 0), (MOUSEEVENTF_LEFTUP, 0, 0, 0)]),
-            MouseButton::RightButton => send_mouse_inputs(vec![(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0), (MOUSEEVENTF_RIGHTDOWN, 0, 0, 0)]),
-            MouseButton::MiddleButton => send_mouse_inputs(vec![(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0), (MOUSEEVENTF_MIDDLEUP, 0, 0, 0)]),
-            MouseButton::X1Button => send_mouse_inputs(vec![(MOUSEEVENTF_XDOWN, 1, 0, 0), (MOUSEEVENTF_XUP, 1, 0, 0)]),
-            MouseButton::X2Button => send_mouse_inputs(vec![(MOUSEEVENTF_XDOWN, 2, 0, 0), (MOUSEEVENTF_XUP, 2, 0, 0)]),
+            MouseButton::LeftButton => send_mouse_inputs(vec![
+                (MOUSEEVENTF_LEFTDOWN, 0, 0, 0),
+                (MOUSEEVENTF_LEFTUP, 0, 0, 0),
+            ]),
+            MouseButton::RightButton => send_mouse_inputs(vec![
+                (MOUSEEVENTF_RIGHTDOWN, 0, 0, 0),
+                (MOUSEEVENTF_RIGHTDOWN, 0, 0, 0),
+            ]),
+            MouseButton::MiddleButton => send_mouse_inputs(vec![
+                (MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0),
+                (MOUSEEVENTF_MIDDLEUP, 0, 0, 0),
+            ]),
+            MouseButton::X1Button => send_mouse_inputs(vec![
+                (MOUSEEVENTF_XDOWN, 1, 0, 0),
+                (MOUSEEVENTF_XUP, 1, 0, 0),
+            ]),
+            MouseButton::X2Button => send_mouse_inputs(vec![
+                (MOUSEEVENTF_XDOWN, 2, 0, 0),
+                (MOUSEEVENTF_XUP, 2, 0, 0),
+            ]),
             _ => {}
         }
     }
@@ -372,11 +397,12 @@ fn send_mouse_inputs(inputs: Vec<(MOUSE_EVENT_FLAGS, i32, i32, i32)>) {
                 time: 0,
                 dwExtraInfo: 0,
             };
-        INPUT {
-            r#type: INPUT_MOUSE,
-            Anonymous: INPUT_0 { mi: mouse_input }
-        }
-    }).collect();
+            INPUT {
+                r#type: INPUT_MOUSE,
+                Anonymous: INPUT_0 { mi: mouse_input },
+            }
+        })
+        .collect();
 
     unsafe { SendInput(&inputs, size_of::<INPUT>() as c_int) };
 }
@@ -384,7 +410,9 @@ fn send_mouse_inputs(inputs: Vec<(MOUSE_EVENT_FLAGS, i32, i32, i32)>) {
 fn send_keybd_input(flags: KEYBD_EVENT_FLAGS, key_code: KeybdKey) {
     let keybd = KEYBDINPUT {
         wVk: VIRTUAL_KEY(0),
-        wScan: unsafe { MapVirtualKeyW(u64::from(key_code) as u32, MAP_VIRTUAL_KEY_TYPE(0)) as u16 },
+        wScan: unsafe {
+            MapVirtualKeyW(u64::from(key_code) as u32, MAP_VIRTUAL_KEY_TYPE(0)) as u16
+        },
         dwFlags: flags,
         time: 0,
         dwExtraInfo: 0,
@@ -404,16 +432,19 @@ fn send_keybd_inputs(inputs: Vec<(KEYBD_EVENT_FLAGS, KeybdKey)>) {
         .map(|(flags, key_code)| {
             let keybd_input = KEYBDINPUT {
                 wVk: VIRTUAL_KEY(0),
-                wScan: unsafe { MapVirtualKeyW(u64::from(key_code) as u32, MAP_VIRTUAL_KEY_TYPE(0)) as u16 },
+                wScan: unsafe {
+                    MapVirtualKeyW(u64::from(key_code) as u32, MAP_VIRTUAL_KEY_TYPE(0)) as u16
+                },
                 dwFlags: flags,
                 time: 0,
                 dwExtraInfo: 0,
             };
             INPUT {
                 r#type: INPUT_KEYBOARD,
-                Anonymous: INPUT_0 { ki: keybd_input }
+                Anonymous: INPUT_0 { ki: keybd_input },
             }
-    }).collect();
+        })
+        .collect();
 
     unsafe { SendInput(&inputs, size_of::<INPUT>() as c_int) };
 }

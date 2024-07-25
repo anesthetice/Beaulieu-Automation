@@ -6,32 +6,90 @@ use watcher::Watcher;
 pub struct Engine {
     inner: Vec<Expression>,
     watcher: Watcher,
-    delay_between_actions: std::time::Duration,
+    delay: std::time::Duration,
 }
 
 impl Engine {
-    pub fn new() -> Self {
-        Self {
-            inner: vec![],
-            watcher: Watcher::new(super::button::Button::K(inputbot::KeybdKey::EscapeKey)),
-            delay_between_actions: std::time::Duration::new(1, 0),
-        }
+    pub fn new(expressions: Vec<Expression>, host_resolution: (i32, i32)) -> anyhow::Result<Self> {
+        let script_resolution = expressions
+            .iter()
+            .find_map(|expr| match expr {
+                Expression::Resolution(res) => Some(*res),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                tracing::error!("GLOBAL_RESOLUTION definition missing");
+                anyhow::anyhow!("Failed to create engine")
+            })?;
+        tracing::debug!("script resolution = {}x{}", script_resolution.0, script_resolution.1);
+
+        let delay_between_actions = expressions
+            .iter()
+            .find_map(|expr| match expr {
+                Expression::DelayBetweenActions(val) => {
+                    Some(std::time::Duration::from_millis(*val))
+                }
+                _ => None,
+            })
+            .ok_or_else(|| {
+                tracing::error!("DELAY_BETWEEN_ACTIONS definition missing");
+                anyhow::anyhow!("Failed to create engine")
+            })?;
+        tracing::debug!("delay between actions = {} ms", delay_between_actions.as_millis());
+
+        let global_halt_button = expressions
+            .iter()
+            .find_map(|expr| match expr {
+                Expression::GlobalHaltButton(button) => Some(*button),
+                _ => None,
+            })
+            .ok_or_else(|| {
+                tracing::error!("GLOBAL_HALT_BUTTON definition missing");
+                anyhow::anyhow!("Failed to create engine")
+            })?;
+        tracing::debug!("global halt button = {:?}", global_halt_button);
+
+        let width_ratio: f64 = host_resolution.0 as f64 / script_resolution.0 as f64;
+        let height_ratio: f64 = host_resolution.1 as f64 / script_resolution.1 as f64;
+        let modify_positions = (width_ratio != 1.0) | (height_ratio != 1.0);
+
+        let expressions: Vec<Expression> = expressions
+            .into_iter()
+            .filter(|expr| !expr.is_definition())
+            .map(|expr| {
+                match expr {
+                    expr @ Expression::Move((x, y)) => {
+                        if modify_positions {
+                            Expression::Move(
+                                ((x as f64 * width_ratio).floor() as i32, (y as f64 * height_ratio).floor() as i32)
+                            )
+                        } else {
+                            expr
+                        }  
+                    },
+                    expr @ _ => expr
+                }
+            })
+            .collect();
+
+        Ok(Self { inner: expressions, watcher: Watcher::new(global_halt_button), delay: delay_between_actions })
     }
 
-    pub fn start(self) {
-        loop {
-            if self.watcher.check() {
-                self.watcher.clean();
-                break;
+    pub fn start(self, nb_cycles: usize) -> anyhow::Result<()> {
+
+        for cycle_idx in 0..nb_cycles {
+            tracing::info!("cycle = {}", cycle_idx);
+            for expr in self.inner.iter() {
+                if self.watcher.check() {
+                    self.watcher.clean();
+                    return Err(anyhow::anyhow!("Engine manually stopped"));
+                }
+                expr.execute();
             }
         }
-    }
-}
 
-/*
-impl TryFrom<Vec<Expression>> for Engine {
-    type Error = anyhow::Error;
-    fn try_from(value: Vec<Expression>) -> Result<Self, Self::Error> {
+        tracing::info!("Engine finished running");
+
+        Ok(())
     }
 }
-*/

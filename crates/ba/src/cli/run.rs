@@ -3,7 +3,11 @@ use anyhow::Context;
 use crate::compiler::Engine;
 
 use super::*;
-use std::{fs::OpenOptions, io::Read, path::{absolute, PathBuf}};
+use std::{
+    fs::OpenOptions,
+    io::Read,
+    path::{absolute, PathBuf},
+};
 
 pub(super) fn run_subcommand() -> Command {
     Command::new("run")
@@ -27,8 +31,10 @@ pub(super) fn run_subcommand() -> Command {
         )
 }
 
-pub fn process_run_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) -> anyhow::Result<PO>
-{
+pub fn process_run_subcommand(
+    arg_matches: &ArgMatches,
+    resolution: (i32, i32),
+) -> anyhow::Result<PO> {
     let Some(arg_matches) = arg_matches.subcommand_matches("run") else {
         return Ok(PO::Continue);
     };
@@ -38,24 +44,30 @@ pub fn process_run_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) 
         return Ok(PO::Exit);
     };
     let absolute_path = absolute(&path)
-    .map_err(|err| {
-        tracing::warn!("Failed to absolutize given path '{}' due to '{}'", path.display(), err);
-        err
-    })
-    .unwrap_or(path.clone());
+        .map_err(|err| {
+            tracing::warn!(
+                "Failed to absolutize given path '{}' due to '{}'",
+                path.display(),
+                err
+            );
+            err
+        })
+        .unwrap_or(path.clone());
 
     if !path.is_dir() {
         tracing::error!("Specified path/name does not exist");
-        return Ok(PO::Exit)
+        return Ok(PO::Exit);
     } else if path.extension().is_some() {
         tracing::error!("Path required, got filepath instead");
-        return Ok(PO::Exit)
+        return Ok(PO::Exit);
     }
+
+    let nb_cycles = *arg_matches.get_one::<usize>("repetitions").unwrap_or(&1);
 
     // filepaths
     let main_filepath = &absolute_path.join("main.ba");
     let keymap_filepath = &absolute_path.join("keymap.json");
-    let mousemap_filepath = &absolute_path.join("mousemap.json"); 
+    let mousemap_filepath = &absolute_path.join("mousemap.json");
 
     // load KeyMap
     crate::keymap::KeyMap::init(keymap_filepath)?;
@@ -70,15 +82,17 @@ pub fn process_run_subcommand(arg_matches: &ArgMatches, resolution: (i32, i32)) 
     std::fs::OpenOptions::new()
         .read(true)
         .open(&main_filepath)
-        .context(format!("Failed to read/open file with path '{}'", main_filepath.display()))?
+        .context(format!(
+            "Failed to read/open file with path '{}'",
+            main_filepath.display()
+        ))?
         .read_to_string(&mut input)?;
 
     let mut parser = crate::compiler::Parser::new(&input);
     let parsed = parser.process()?;
-    println!("{:#?}", parsed);
 
-    let engine = Engine::new();
-    engine.start();
-
+    let engine = Engine::new(parsed, resolution)?;
+    engine.start(nb_cycles)?;
+    
     Ok(PO::Exit)
 }

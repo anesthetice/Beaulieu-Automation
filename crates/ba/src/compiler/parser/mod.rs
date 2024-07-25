@@ -11,14 +11,12 @@ pub struct Parser<'input, I>
 where
     I: Iterator<Item = Token>,
 {
-    input:  &'input str,
+    input: &'input str,
     tokens: Peekable<I>,
 }
 
 impl<'input> Parser<'input, TokenIter<'input>> {
-    pub fn new(input: &'input str)
-    -> Parser<'input, TokenIter<'input>> 
-    {
+    pub fn new(input: &'input str) -> Parser<'input, TokenIter<'input>> {
         Parser {
             input,
             tokens: TokenIter::new(input).peekable(),
@@ -27,7 +25,8 @@ impl<'input> Parser<'input, TokenIter<'input>> {
 }
 
 impl<'input, I> Parser<'input, I>
-where I: Iterator<Item = Token>,
+where
+    I: Iterator<Item = Token>,
 {
     // Get the source text of a token.
     fn text(&self, token: Token) -> &'input str {
@@ -36,7 +35,10 @@ where I: Iterator<Item = Token>,
 
     // Look-ahead one token and see what kind of token it is.
     fn peek(&mut self) -> TokenKind {
-        self.tokens.peek().map(|token| token.kind).unwrap_or(TK![EOF])
+        self.tokens
+            .peek()
+            .map(|token| token.kind)
+            .unwrap_or(TK![EOF])
     }
 
     // Get the next token.
@@ -45,9 +47,16 @@ where I: Iterator<Item = Token>,
     }
 
     fn consume(&mut self, expected: TokenKind) -> anyhow::Result<Token> {
-        let token = self.next().ok_or(anyhow::anyhow!("Expected to consume '{}', but there was no next token", expected))?;
+        let token = self.next().ok_or(anyhow::anyhow!(
+            "Expected to consume '{}', but there was no next token",
+            expected
+        ))?;
         if token.kind != expected {
-            Err(anyhow::anyhow!("Expected to consume '{}', but found '{}'", expected, token.kind))?;
+            Err(anyhow::anyhow!(
+                "Expected to consume '{}', but found '{}'",
+                expected,
+                token.kind
+            ))?;
         }
         Ok(token)
     }
@@ -55,14 +64,14 @@ where I: Iterator<Item = Token>,
     pub fn process(&mut self) -> anyhow::Result<Vec<Expression>> {
         let mut expressions: Vec<Expression> = Vec::new();
         while let Some(expr) = self.parse_expression()? {
+            tracing::trace!("Parsed expression '{:?}'", &expr);
             expressions.push(expr);
         }
         Ok(expressions)
     }
 
     fn parse_expression(&mut self) -> anyhow::Result<Option<Expression>> {
-        match self.peek() 
-        {
+        match self.peek() {
             TK![def] => {
                 let _ = self.consume(TK![def])?;
                 let name_token = self.consume(TK![Word])?;
@@ -70,19 +79,24 @@ where I: Iterator<Item = Token>,
                 let _ = self.consume(TK![=]);
                 match name.as_str() {
                     "RESOLUTION" => {
-                        let resolution = token_to_position(self.consume(TK![Position])?, &self.input)?;
+                        let resolution =
+                            token_to_position(self.consume(TK![Position])?, &self.input)?;
                         Ok(Some(Expression::Resolution(resolution)))
-                    },
+                    }
                     "DELAY_BETWEEN_ACTIONS" => {
-                        let milliseconds = token_to_float(self.consume(TK![Float])?, &self.input)? as u64;
+                        let milliseconds =
+                            token_to_float(self.consume(TK![Float])?, &self.input)? as u64;
                         Ok(Some(Expression::DelayBetweenActions(milliseconds)))
-                    },
+                    }
                     "GLOBAL_HALT_BUTTON" => {
                         let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
                         Ok(Some(Expression::GlobalHaltButton(button)))
-                    },
+                    }
                     _ => {
-                        tracing::error!("Failed to assing the unknown global definition '{}'", &name);
+                        tracing::error!(
+                            "Failed to assing the unknown global definition '{}'",
+                            &name
+                        );
                         Err(anyhow::anyhow!("Unkown definition"))
                     }
                 }
@@ -91,27 +105,27 @@ where I: Iterator<Item = Token>,
                 let _ = self.consume(TK![Move]);
                 let position = token_to_position(self.consume(TK![Position])?, &self.input)?;
                 Ok(Some(Expression::Move(position)))
-            },
+            }
             TK![Tap] => {
                 let _ = self.consume(TK![Tap]);
                 let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
                 Ok(Some(Expression::Tap(button)))
-            },
+            }
             TK![Press] => {
                 let _ = self.consume(TK![Press]);
                 let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
                 Ok(Some(Expression::Press(button)))
-            },
+            }
             TK![Release] => {
                 let _ = self.consume(TK![Release]);
                 let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
                 Ok(Some(Expression::Release(button)))
-            },
+            }
             TK![Sleep] => {
                 let _ = self.consume(TK![Sleep]);
                 let time = token_to_float(self.consume(TK![Float])?, &self.input).unwrap();
                 Ok(Some(Expression::Sleep(time)))
-            },
+            }
             TK![Type] => {
                 let _ = self.consume(TK![Type]);
                 let string = token_to_string(self.consume(TK![String])?, &self.input).unwrap();
@@ -121,17 +135,13 @@ where I: Iterator<Item = Token>,
                 let _ = self.consume(TK![EOI]);
                 self.parse_expression()
             }
-            TK![EOF] => {
-                Ok(None)
-            }
+            TK![EOF] => Ok(None),
             undefined => {
                 tracing::error!("Undefined parsing behavior for TokenKind '{:?}'", undefined);
                 Err(anyhow::anyhow!("Parsing failed"))
             }
         }
     }
-
-
 }
 
 pub struct TokenIter<'input> {
@@ -140,7 +150,9 @@ pub struct TokenIter<'input> {
 
 impl<'input> TokenIter<'input> {
     fn new(input: &'input str) -> Self {
-        Self { lexer: Lexer::new(input) }
+        Self {
+            lexer: Lexer::new(input),
+        }
     }
 }
 
@@ -158,6 +170,4 @@ impl<'input> Iterator for TokenIter<'input> {
 }
 
 #[cfg(test)]
-mod tests {
-
-}
+mod tests {}

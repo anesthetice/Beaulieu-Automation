@@ -15,7 +15,10 @@ impl TryFrom<&str> for Button {
         } else if let Some(button) = crate::mousemap::MouseMap::get().get(&value) {
             Ok(Button::M(button.clone()))
         } else {
-            Err(anyhow::anyhow!("No key or mouse button found associated with '{}'", value))
+            Err(anyhow::anyhow!(
+                "No key or mouse button found associated with '{}'",
+                value
+            ))
         }
     }
 }

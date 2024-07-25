@@ -25,7 +25,7 @@ fn match_regex(input: &str, re: &Regex) -> Option<usize> {
 
 // match '//' then anything except a new line 0 or more times until a newline is met
 static WORD_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^[a-zA-z][a-zA-z0-9_]*"#).unwrap());
-static POSITION_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^\d+ *, *\d+"#).unwrap()); 
+static POSITION_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^\d+ *, *\d+"#).unwrap());
 static STRING_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"(^")(\\"|\\\\|[^\\"\n])*(")"#).unwrap());
 static FLOAT_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^((\d+(\.\d+)?)|(\.\d+))"#).unwrap());
 static COMMENT_RE: Lazy<Regex> = Lazy::new(|| Regex::new(r#"^(//[^\n]*)"#).unwrap());
@@ -106,18 +106,11 @@ mod tests {
     #[test]
     fn comment_match() {
         let input: &str = "// This is a simple comment\n";
-        assert_eq!(
-            match_regex(input, &COMMENT_RE),
-            Some(27)
-        )
+        assert_eq!(match_regex(input, &COMMENT_RE), Some(27))
     }
     #[test]
     fn comment_mismatch() {
         let input: &str = "// This is a simple comment\n";
-        assert_eq!(
-            match_regex(input, &STRING_RE),
-            None
-        )
+        assert_eq!(match_regex(input, &STRING_RE), None)
     }
 }
-

@@ -1,5 +1,5 @@
-use std::thread::{self, JoinHandle};
 use oneshot::{Receiver, SendError, TryRecvError};
+use std::thread::{self, JoinHandle};
 
 use crate::compiler::button::Button;
 
@@ -17,11 +17,12 @@ impl Watcher {
                 button.unbind();
             });
             inputbot::handle_input_events(true);
-            tracing::debug!("Global halt button unbind");
 
             match sender.send(()) {
                 Ok(()) => tracing::debug!("Halt message sent"),
-                Err(_) => tracing::debug!("Failed to send halt message as the receiver no longer exists")
+                Err(_) => {
+                    tracing::debug!("Failed to send halt message as the receiver no longer exists")
+                }
             };
         });
         Self { receiver, handle }
@@ -32,21 +33,19 @@ impl Watcher {
             Ok(()) => {
                 tracing::info!("Halt message received");
                 true
-            },
+            }
             Err(TryRecvError::Disconnected) => {
                 tracing::error!("Watcher thread disconnected");
                 true
             }
-            Err(TryRecvError::Empty) => {
-                false
-            }
+            Err(TryRecvError::Empty) => false,
         }
     }
 
     pub(super) fn clean(self) {
         match self.handle.join() {
             Ok(()) => tracing::debug!("Watcher thread successfully joined"),
-            Err(err) => tracing::warn!("Watcher thread panicked '{:?}'", err)
+            Err(err) => tracing::warn!("Watcher thread panicked '{:?}'", err),
         }
     }
 }

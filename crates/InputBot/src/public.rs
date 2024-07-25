@@ -2,9 +2,7 @@ use crate::common::*;
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
-use serde::{
-    Deserialize, Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 pub enum BlockInput {
     Block,
