@@ -15,7 +15,7 @@ impl KeyMap {
         std::fs::OpenOptions::new()
             .create(false)
             .read(true)
-            .open(&keymap_filepath)
+            .open(keymap_filepath)
             .context(format!(
                 "Failed to read/open file with path '{}'",
                 keymap_filepath.display()
@@ -48,7 +48,7 @@ impl Default for KeyMap {
 impl From<&[(&str, KeybdKey)]> for KeyMap {
     fn from(value: &[(&str, KeybdKey)]) -> Self {
         Self {
-            inner: HashMap::from_iter(value.into_iter().map(|(s, k)| (s.to_string(), *k))),
+            inner: HashMap::from_iter(value.iter().map(|(s, k)| (s.to_string(), *k))),
         }
     }
 }
@@ -56,12 +56,12 @@ impl From<&[(&str, KeybdKey)]> for KeyMap {
 impl From<Vec<(String, KeybdKey)>> for KeyMap {
     fn from(value: Vec<(String, KeybdKey)>) -> Self {
         Self {
-            inner: HashMap::from_iter(value.into_iter()),
+            inner: HashMap::from_iter(value),
         }
     }
 }
 
-pub static DEFAULT_KEYMAP: [(&'static str, KeybdKey); 148] = [
+pub static DEFAULT_KEYMAP: [(&str, KeybdKey); 148] = [
     ("backspace", BackspaceKey),
     ("tab", TabKey),
     ("enter", EnterKey),

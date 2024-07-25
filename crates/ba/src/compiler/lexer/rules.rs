@@ -16,7 +16,7 @@ impl std::fmt::Debug for Rule {
 }
 
 fn match_keyword(input: &str, keyword: &str) -> Option<usize> {
-    input.starts_with(keyword).then(|| keyword.len())
+    input.starts_with(keyword).then_some(keyword.len())
 }
 
 fn match_regex(input: &str, re: &Regex) -> Option<usize> {

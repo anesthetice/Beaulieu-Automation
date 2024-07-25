@@ -190,7 +190,7 @@ impl MouseWheel {
     }
 }
 
-/// Starts listening for bound input events (otionally stopping when binds are removed).
+/// Starts listening for bound input events (optionally stopping when binds are removed).
 pub fn handle_input_events(auto_stop: bool) {
     if !MOUSE_BINDS.lock().unwrap().is_empty() {
         set_hook(WH_MOUSE_LL, &MOUSE_HHOOK, mouse_proc);
@@ -256,7 +256,7 @@ unsafe extern "system" fn keybd_proc(code: c_int, w_param: WPARAM, l_param: LPAR
             }
         }
     }
-    return CallNextHookEx(None, code, w_param, l_param);
+    CallNextHookEx(None, code, w_param, l_param)
 }
 
 // Replacement for missing conversions in windows crate

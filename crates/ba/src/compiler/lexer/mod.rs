@@ -93,7 +93,7 @@ impl<'input> Iterator for Lexer<'input> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.position as usize >= self.input.len() {
+        if self.position >= self.input.len() {
             if self.eof {
                 return None;
             }
@@ -106,7 +106,7 @@ impl<'input> Iterator for Lexer<'input> {
                 },
             })
         } else {
-            Some(self.next_token(&self.input[self.position as usize..]))
+            Some(self.next_token(&self.input[self.position..]))
         }
     }
 }

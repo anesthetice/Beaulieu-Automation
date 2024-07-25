@@ -31,6 +31,9 @@ impl Expression {
     }
 
     pub(super) fn is_definition(&self) -> bool {
-        matches!(self, Self::Resolution(_) | Self::DelayBetweenActions(_) | Self::GlobalHaltButton(_))
+        matches!(
+            self,
+            Self::Resolution(_) | Self::DelayBetweenActions(_) | Self::GlobalHaltButton(_)
+        )
     }
 }

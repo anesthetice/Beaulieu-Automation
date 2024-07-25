@@ -4,7 +4,6 @@ use crate::compiler::Engine;
 
 use super::*;
 use std::{
-    fs::OpenOptions,
     io::Read,
     path::{absolute, PathBuf},
 };
@@ -22,10 +21,9 @@ pub(super) fn run_subcommand() -> Command {
             .value_parser(clap::value_parser!(PathBuf))
         )
         .arg(Arg::new("repetitions")
-            .short('r')
-            .short_alias('n')
+            .index(2)
             .required(false)
-            .help("number of times to repeat script")
+            .help("number of times to repeat the script")
             .action(ArgAction::Set)
             .value_parser(clap::value_parser!(usize))
         )
@@ -43,7 +41,7 @@ pub fn process_run_subcommand(
         tracing::error!("Failed to extract a valid path/name");
         return Ok(PO::Exit);
     };
-    let absolute_path = absolute(&path)
+    let absolute_path = absolute(path)
         .map_err(|err| {
             tracing::warn!(
                 "Failed to absolutize given path '{}' due to '{}'",
@@ -65,16 +63,16 @@ pub fn process_run_subcommand(
     let nb_cycles = *arg_matches.get_one::<usize>("repetitions").unwrap_or(&1);
 
     // filepaths
-    let main_filepath = &absolute_path.join("main.ba");
-    let keymap_filepath = &absolute_path.join("keymap.json");
-    let mousemap_filepath = &absolute_path.join("mousemap.json");
+    let main_filepath = absolute_path.join("main.ba");
+    let keymap_filepath = absolute_path.join("keymap.json");
+    let mousemap_filepath = absolute_path.join("mousemap.json");
 
     // load KeyMap
-    crate::keymap::KeyMap::init(keymap_filepath)?;
+    crate::keymap::KeyMap::init(&keymap_filepath)?;
     tracing::debug!("KeyMap initialized");
 
     // load MouseMap
-    crate::mousemap::MouseMap::init(mousemap_filepath)?;
+    crate::mousemap::MouseMap::init(&mousemap_filepath)?;
     tracing::debug!("MouseMap initialized");
 
     // load main file
@@ -93,6 +91,6 @@ pub fn process_run_subcommand(
 
     let engine = Engine::new(parsed, resolution)?;
     engine.start(nb_cycles)?;
-    
+
     Ok(PO::Exit)
 }

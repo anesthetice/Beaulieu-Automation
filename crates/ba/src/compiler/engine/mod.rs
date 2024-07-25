@@ -21,7 +21,11 @@ impl Engine {
                 tracing::error!("GLOBAL_RESOLUTION definition missing");
                 anyhow::anyhow!("Failed to create engine")
             })?;
-        tracing::debug!("script resolution = {}x{}", script_resolution.0, script_resolution.1);
+        tracing::debug!(
+            "script resolution = {}x{}",
+            script_resolution.0,
+            script_resolution.1
+        );
 
         let delay_between_actions = expressions
             .iter()
@@ -35,7 +39,10 @@ impl Engine {
                 tracing::error!("DELAY_BETWEEN_ACTIONS definition missing");
                 anyhow::anyhow!("Failed to create engine")
             })?;
-        tracing::debug!("delay between actions = {} ms", delay_between_actions.as_millis());
+        tracing::debug!(
+            "delay between actions = {} ms",
+            delay_between_actions.as_millis()
+        );
 
         let global_halt_button = expressions
             .iter()
@@ -56,35 +63,38 @@ impl Engine {
         let expressions: Vec<Expression> = expressions
             .into_iter()
             .filter(|expr| !expr.is_definition())
-            .map(|expr| {
-                match expr {
-                    expr @ Expression::Move((x, y)) => {
-                        if modify_positions {
-                            Expression::Move(
-                                ((x as f64 * width_ratio).floor() as i32, (y as f64 * height_ratio).floor() as i32)
-                            )
-                        } else {
-                            expr
-                        }  
-                    },
-                    expr @ _ => expr
+            .map(|expr| match expr {
+                expr @ Expression::Move((x, y)) => {
+                    if modify_positions {
+                        Expression::Move((
+                            (x as f64 * width_ratio).floor() as i32,
+                            (y as f64 * height_ratio).floor() as i32,
+                        ))
+                    } else {
+                        expr
+                    }
                 }
+                other => other,
             })
             .collect();
 
-        Ok(Self { inner: expressions, watcher: Watcher::new(global_halt_button), delay: delay_between_actions })
+        Ok(Self {
+            inner: expressions,
+            watcher: Watcher::new(global_halt_button),
+            delay: delay_between_actions,
+        })
     }
 
     pub fn start(self, nb_cycles: usize) -> anyhow::Result<()> {
-
         for cycle_idx in 0..nb_cycles {
-            tracing::info!("cycle = {}", cycle_idx);
+            tracing::info!("cycle {}/{}", cycle_idx + 1, nb_cycles);
             for expr in self.inner.iter() {
                 if self.watcher.check() {
                     self.watcher.clean();
                     return Err(anyhow::anyhow!("Engine manually stopped"));
                 }
                 expr.execute();
+                std::thread::sleep(self.delay);
             }
         }
 

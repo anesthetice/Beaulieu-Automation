@@ -1,7 +1,7 @@
 use inputbot::{KeybdKey, MouseButton};
 
 #[derive(Debug, Clone, Copy)]
-pub(super) enum Button {
+pub enum Button {
     K(KeybdKey),
     M(MouseButton),
 }
@@ -11,9 +11,9 @@ impl TryFrom<&str> for Button {
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let value = value.to_lowercase();
         if let Some(key) = crate::keymap::KeyMap::get().get(&value) {
-            Ok(Button::K(key.clone()))
+            Ok(Button::K(*key))
         } else if let Some(button) = crate::mousemap::MouseMap::get().get(&value) {
-            Ok(Button::M(button.clone()))
+            Ok(Button::M(*button))
         } else {
             Err(anyhow::anyhow!(
                 "No key or mouse button found associated with '{}'",

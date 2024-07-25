@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use directories::ProjectDirs;
 use std::sync::OnceLock;
 

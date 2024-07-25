@@ -15,7 +15,7 @@ impl MouseMap {
         std::fs::OpenOptions::new()
             .create(false)
             .read(true)
-            .open(&mousemap_filepath)
+            .open(mousemap_filepath)
             .context(format!(
                 "Failed to read/open file with path '{}'",
                 mousemap_filepath.display()
@@ -48,7 +48,7 @@ impl Default for MouseMap {
 impl From<&[(&str, MouseButton)]> for MouseMap {
     fn from(value: &[(&str, MouseButton)]) -> Self {
         Self {
-            inner: HashMap::from_iter(value.into_iter().map(|(s, k)| (s.to_string(), *k))),
+            inner: HashMap::from_iter(value.iter().map(|(s, k)| (s.to_string(), *k))),
         }
     }
 }
@@ -56,12 +56,12 @@ impl From<&[(&str, MouseButton)]> for MouseMap {
 impl From<Vec<(String, MouseButton)>> for MouseMap {
     fn from(value: Vec<(String, MouseButton)>) -> Self {
         Self {
-            inner: HashMap::from_iter(value.into_iter()),
+            inner: HashMap::from_iter(value),
         }
     }
 }
 
-pub static DEFAULT_MOUSEMAP: [(&'static str, MouseButton); 5] = [
+pub static DEFAULT_MOUSEMAP: [(&str, MouseButton); 5] = [
     ("lmb", LeftButton),
     ("rmb", RightButton),
     ("mmb", MiddleButton),

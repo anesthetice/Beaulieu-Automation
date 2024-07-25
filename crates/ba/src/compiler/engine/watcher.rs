@@ -1,4 +1,4 @@
-use oneshot::{Receiver, SendError, TryRecvError};
+use oneshot::{Receiver, TryRecvError};
 use std::thread::{self, JoinHandle};
 
 use crate::compiler::button::Button;
@@ -17,7 +17,6 @@ impl Watcher {
                 button.unbind();
             });
             inputbot::handle_input_events(true);
-
             match sender.send(()) {
                 Ok(()) => tracing::debug!("Halt message sent"),
                 Err(_) => {

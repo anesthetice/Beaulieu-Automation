@@ -36,7 +36,7 @@ pub fn process_new_subcommand(
         tracing::error!("Failed to extract a valid path/name");
         return Ok(PO::Exit);
     };
-    let absolute_path = absolute(&path)
+    let absolute_path = absolute(path)
         .map_err(|err| {
             tracing::warn!(
                 "Failed to absolutize given path '{}' due to '{}'",
@@ -61,20 +61,20 @@ pub fn process_new_subcommand(
     );
 
     // create application folder
-    std::fs::create_dir(&path)
-        .context(format!("Failed to create '{}'", absolute_path.display()))?;
+    std::fs::create_dir(path).context(format!("Failed to create '{}'", absolute_path.display()))?;
     tracing::debug!("Created application folder");
 
     // define filepaths
-    let main_filepath = &path.join("main.ba");
-    let keymap_filepath = &path.join("keymap.json");
-    let mousemap_filepath = &path.join("mousemap.json");
-    let readme_filepath = &path.join("README.md");
+    let main_filepath = path.join("main.ba");
+    let keymap_filepath = path.join("keymap.json");
+    let mousemap_filepath = path.join("mousemap.json");
+    let readme_filepath = path.join("README.md");
 
     // generate main
     OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&main_filepath)
         .context(format!("Failed to create main file with path '{}'", &main_filepath.display()))?
         .write_all(
@@ -87,10 +87,11 @@ pub fn process_new_subcommand(
     OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&readme_filepath)
         .context(format!("Failed to create readme file with path '{}'", &readme_filepath.display()))?
         .write_all(
-        format!("## Title\n\n### description\n* describe what your application is used for here\n\n### layout\n* describe your desktop's initial layout for the application to function properly\n* please also include a screenshot of the entire initial desktop in the application folder")
+            String::from("## Title\n\n### description\n* describe what your application is used for here\n\n### layout\n* describe your desktop's initial layout for the application to function properly\n* please also include a screenshot of the entire initial desktop in the application folder")
                 .as_bytes()
         )?;
     tracing::debug!("Created README.md");
@@ -99,6 +100,7 @@ pub fn process_new_subcommand(
     OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&keymap_filepath)
         .context(format!(
             "Failed to create keymap file with path '{}'",
@@ -111,6 +113,7 @@ pub fn process_new_subcommand(
     OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&mousemap_filepath)
         .context(format!(
             "Failed to create keymap file with path '{}'",

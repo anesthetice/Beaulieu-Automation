@@ -30,7 +30,7 @@ where
 {
     // Get the source text of a token.
     fn text(&self, token: Token) -> &'input str {
-        token.text(&self.input)
+        token.text(self.input)
     }
 
     // Look-ahead one token and see what kind of token it is.
@@ -80,16 +80,16 @@ where
                 match name.as_str() {
                     "RESOLUTION" => {
                         let resolution =
-                            token_to_position(self.consume(TK![Position])?, &self.input)?;
+                            token_to_position(self.consume(TK![Position])?, self.input)?;
                         Ok(Some(Expression::Resolution(resolution)))
                     }
                     "DELAY_BETWEEN_ACTIONS" => {
                         let milliseconds =
-                            token_to_float(self.consume(TK![Float])?, &self.input)? as u64;
+                            token_to_float(self.consume(TK![Float])?, self.input)? as u64;
                         Ok(Some(Expression::DelayBetweenActions(milliseconds)))
                     }
                     "GLOBAL_HALT_BUTTON" => {
-                        let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
+                        let button = token_to_button(self.consume(TK![Word])?, self.input)?;
                         Ok(Some(Expression::GlobalHaltButton(button)))
                     }
                     _ => {
@@ -103,32 +103,32 @@ where
             }
             TK![Move] => {
                 let _ = self.consume(TK![Move]);
-                let position = token_to_position(self.consume(TK![Position])?, &self.input)?;
+                let position = token_to_position(self.consume(TK![Position])?, self.input)?;
                 Ok(Some(Expression::Move(position)))
             }
             TK![Tap] => {
                 let _ = self.consume(TK![Tap]);
-                let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
+                let button = token_to_button(self.consume(TK![Word])?, self.input)?;
                 Ok(Some(Expression::Tap(button)))
             }
             TK![Press] => {
                 let _ = self.consume(TK![Press]);
-                let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
+                let button = token_to_button(self.consume(TK![Word])?, self.input)?;
                 Ok(Some(Expression::Press(button)))
             }
             TK![Release] => {
                 let _ = self.consume(TK![Release]);
-                let button = token_to_button(self.consume(TK![Word])?, &self.input)?;
+                let button = token_to_button(self.consume(TK![Word])?, self.input)?;
                 Ok(Some(Expression::Release(button)))
             }
             TK![Sleep] => {
                 let _ = self.consume(TK![Sleep]);
-                let time = token_to_float(self.consume(TK![Float])?, &self.input).unwrap();
+                let time = token_to_float(self.consume(TK![Float])?, self.input).unwrap();
                 Ok(Some(Expression::Sleep(time)))
             }
             TK![Type] => {
                 let _ = self.consume(TK![Type]);
-                let string = token_to_string(self.consume(TK![String])?, &self.input).unwrap();
+                let string = token_to_string(self.consume(TK![String])?, self.input).unwrap();
                 Ok(Some(Expression::Type(string)))
             }
             TK![EOI] => {
