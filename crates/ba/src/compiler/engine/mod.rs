@@ -44,17 +44,17 @@ impl Engine {
             delay_between_actions.as_millis()
         );
 
-        let global_halt_button = expressions
+        let global_halt_key = expressions
             .iter()
             .find_map(|expr| match expr {
-                Expression::GlobalHaltButton(button) => Some(*button),
+                Expression::GlobalHaltKey(button) => Some(*button),
                 _ => None,
             })
             .ok_or_else(|| {
-                tracing::error!("GLOBAL_HALT_BUTTON definition missing");
+                tracing::error!("GLOBAL_HALT_KEY definition missing");
                 anyhow::anyhow!("Failed to create engine")
             })?;
-        tracing::debug!("global halt button = {:?}", global_halt_button);
+        tracing::debug!("global halt key = {:?}", global_halt_key);
 
         let width_ratio: f64 = host_resolution.0 as f64 / script_resolution.0 as f64;
         let height_ratio: f64 = host_resolution.1 as f64 / script_resolution.1 as f64;
@@ -80,7 +80,7 @@ impl Engine {
 
         Ok(Self {
             inner: expressions,
-            watcher: Watcher::new(global_halt_button),
+            watcher: Watcher::new(global_halt_key),
             delay: delay_between_actions,
         })
     }

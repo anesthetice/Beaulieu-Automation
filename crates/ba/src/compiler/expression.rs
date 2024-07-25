@@ -4,7 +4,7 @@ use super::button::Button;
 pub enum Expression {
     Resolution((i32, i32)),
     DelayBetweenActions(u64),
-    GlobalHaltButton(Button),
+    GlobalHaltKey(Button),
     Move((i32, i32)),
     Tap(Button),
     Press(Button),
@@ -20,7 +20,7 @@ impl Expression {
             Self::DelayBetweenActions(_) => {
                 tracing::warn!("DELAY_BETWEEN_ACTIONS definition executed")
             }
-            Self::GlobalHaltButton(_) => tracing::warn!("GLOBAL_HALT_BUTTON definition executed"),
+            Self::GlobalHaltKey(_) => tracing::warn!("GLOBAL_HALT_KEY definition executed"),
             Self::Move(pos) => inputbot::MouseCursor::move_abs(pos.0, pos.1),
             Self::Tap(button) => button.tap(),
             Self::Press(button) => button.press(),
@@ -33,7 +33,7 @@ impl Expression {
     pub(super) fn is_definition(&self) -> bool {
         matches!(
             self,
-            Self::Resolution(_) | Self::DelayBetweenActions(_) | Self::GlobalHaltButton(_)
+            Self::Resolution(_) | Self::DelayBetweenActions(_) | Self::GlobalHaltKey(_)
         )
     }
 }

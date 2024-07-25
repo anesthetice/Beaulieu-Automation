@@ -88,15 +88,12 @@ where
                             token_to_float(self.consume(TK![Float])?, self.input)? as u64;
                         Ok(Some(Expression::DelayBetweenActions(milliseconds)))
                     }
-                    "GLOBAL_HALT_BUTTON" => {
+                    "GLOBAL_HALT_KEY" => {
                         let button = token_to_button(self.consume(TK![Word])?, self.input)?;
-                        Ok(Some(Expression::GlobalHaltButton(button)))
+                        Ok(Some(Expression::GlobalHaltKey(button)))
                     }
                     _ => {
-                        tracing::error!(
-                            "Failed to assing the unknown global definition '{}'",
-                            &name
-                        );
+                        tracing::error!("Failed to assign the unknown definition '{}'", &name);
                         Err(anyhow::anyhow!("Unkown definition"))
                     }
                 }

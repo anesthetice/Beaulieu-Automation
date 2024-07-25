@@ -9,6 +9,7 @@ edition = "2021"
 strum = { version = "0.25.0", features = ["derive"] }
 strum_macros = "0.25.2"
 once_cell = { workspace = true }
+oneshot = { workspace = true }
 thiserror = { version = "^1.0" }
 regex = { workspace = true }
 serde = { workspace = true }
