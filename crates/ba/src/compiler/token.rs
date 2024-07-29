@@ -73,10 +73,14 @@ pub(super) enum TokenKind {
     Release,
     Sleep,
     Type,
+    Await,
+    Bind,
 
     // Delimiters
     Whitespace,
     Comma,
+    LBrace,
+    RBrace,
     EOI, // end of instruction
     EOF, // end of file
 
@@ -104,10 +108,14 @@ macro_rules! TK {
     [Release] => {$crate::compiler::token::TokenKind::Release};
     [Sleep] => {$crate::compiler::token::TokenKind::Sleep};
     [Type] => {$crate::compiler::token::TokenKind::Type};
+    [Await] => {$crate::compiler::token::TokenKind::Await};
+    [Bind] => {$crate::compiler::token::TokenKind::Bind};
 
     // Delimiters
     [ws] => {$crate::compiler::token::TokenKind::Whitespace};
     [,] => {$crate::compiler::token::TokenKind::Comma};
+    [LBrace] => {$crate::compiler::token::TokenKind::LBrace};
+    [RBrace] => {$crate::compiler::token::TokenKind::RBrace};
     [EOI] => {$crate::compiler::token::TokenKind::EOI};
     [EOF] => {$crate::compiler::token::TokenKind::EOF};
 

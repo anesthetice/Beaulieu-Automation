@@ -30,6 +30,11 @@ impl KeyMap {
     pub fn get() -> &'static Self {
         KEYMAP.get().unwrap()
     }
+
+    #[cfg(test)]
+    pub fn test_init() {
+        KEYMAP.set(KeyMap::from(&DEFAULT_KEYMAP[..])).unwrap();
+    }
 }
 
 impl std::ops::Deref for KeyMap {

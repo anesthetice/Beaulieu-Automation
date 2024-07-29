@@ -1,6 +1,6 @@
 use inputbot::{KeybdKey, MouseButton};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Button {
     K(KeybdKey),
     M(MouseButton),
@@ -49,7 +49,7 @@ impl Button {
     ) -> anyhow::Result<std::thread::JoinHandle<()>> {
         match self {
             Self::K(a) => Ok(a.listen_once(hotkey_id, callback)),
-            Self::M(a) => {
+            Self::M(_) => {
                 tracing::error!("Mouse buttons cannot be bound, use keys instead");
                 Err(anyhow::anyhow!("Cannot bind mouse button"))
             }

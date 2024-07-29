@@ -80,7 +80,7 @@ impl Engine {
 
         Ok(Self {
             inner: expressions,
-            watcher: Watcher::new(global_halt_key),
+            watcher: Watcher::new(global_halt_key)?,
             delay: delay_between_actions,
         })
     }
@@ -90,7 +90,7 @@ impl Engine {
             tracing::info!("cycle {}/{}", cycle_idx + 1, nb_cycles);
             for expr in self.inner.iter() {
                 if self.watcher.check() {
-                    self.watcher.clean();
+                    self.watcher.post_halt();
                     return Err(anyhow::anyhow!("Engine manually stopped"));
                 }
                 expr.execute();

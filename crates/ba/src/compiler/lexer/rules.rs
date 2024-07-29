@@ -66,8 +66,24 @@ pub(super) fn get_rules() -> Vec<Rule> {
             matches: |input| match_keyword(input, "Type"),
         },
         Rule {
+            kind: TK![Await],
+            matches: |input| match_keyword(input, "Await"),
+        },
+        Rule {
+            kind: TK![Bind],
+            matches: |input| match_keyword(input, "Bind"),
+        },
+        Rule {
             kind: TK![,],
             matches: |input| match_keyword(input, ","),
+        },
+        Rule {
+            kind: TK![LBrace],
+            matches: |input| match_keyword(input, "{"),
+        },
+        Rule {
+            kind: TK![RBrace],
+            matches: |input| match_keyword(input, "}"),
         },
         Rule {
             kind: TK![EOI],

@@ -1,6 +1,3 @@
-use crate::common::*;
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
 
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +6,7 @@ pub enum BlockInput {
     DontBlock,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, EnumIter, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum KeybdKey {
     BackspaceKey,
     TabKey,
@@ -147,11 +144,10 @@ pub enum KeybdKey {
     // OEM 102
     LessThanKey,
 
-    #[strum(disabled)]
     OtherKey(u64),
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, EnumIter, Serialize, Deserialize)]
+#[derive(Debug, Eq, PartialEq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum MouseButton {
     LeftButton,
     MiddleButton,
@@ -160,7 +156,6 @@ pub enum MouseButton {
     X2Button,
     MousewheelUp,
     MousewheelDown,
-    #[strum(disabled)]
     OtherButton(u32),
 }
 

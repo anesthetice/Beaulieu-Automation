@@ -1,8 +1,9 @@
 use std::iter::Peekable;
 
 use ast::{token_to_button, token_to_float, token_to_position, token_to_string};
+use windows::Win32::Foundation::TPM_20_E_OBJECT_MEMORY;
 
-use super::{expression::Expression, lexer::Lexer, Token, TokenKind};
+use super::{expression::Expression, lexer::Lexer, Span, Token, TokenKind};
 use crate::TK;
 
 mod ast;
@@ -73,23 +74,26 @@ where
     fn parse_expression(&mut self) -> anyhow::Result<Option<Expression>> {
         match self.peek() {
             TK![def] => {
-                let _ = self.consume(TK![def])?;
+                self.consume(TK![def])?;
                 let name_token = self.consume(TK![Word])?;
                 let name = self.text(name_token).to_uppercase();
-                let _ = self.consume(TK![=]);
+                self.consume(TK![=])?;
                 match name.as_str() {
                     "RESOLUTION" => {
                         let resolution =
                             token_to_position(self.consume(TK![Position])?, self.input)?;
+                        self.consume(TK![EOI])?;
                         Ok(Some(Expression::Resolution(resolution)))
                     }
                     "DELAY_BETWEEN_ACTIONS" => {
                         let milliseconds =
                             token_to_float(self.consume(TK![Float])?, self.input)? as u64;
+                        self.consume(TK![EOI])?;
                         Ok(Some(Expression::DelayBetweenActions(milliseconds)))
                     }
                     "GLOBAL_HALT_KEY" => {
                         let button = token_to_button(self.consume(TK![Word])?, self.input)?;
+                        self.consume(TK![EOI])?;
                         Ok(Some(Expression::GlobalHaltKey(button)))
                     }
                     _ => {
@@ -99,37 +103,78 @@ where
                 }
             }
             TK![Move] => {
-                let _ = self.consume(TK![Move]);
+                self.consume(TK![Move])?;
                 let position = token_to_position(self.consume(TK![Position])?, self.input)?;
+                self.consume(TK![EOI])?;
                 Ok(Some(Expression::Move(position)))
             }
             TK![Tap] => {
-                let _ = self.consume(TK![Tap]);
+                self.consume(TK![Tap])?;
                 let button = token_to_button(self.consume(TK![Word])?, self.input)?;
+                self.consume(TK![EOI])?;
                 Ok(Some(Expression::Tap(button)))
             }
             TK![Press] => {
-                let _ = self.consume(TK![Press]);
+                self.consume(TK![Press])?;
                 let button = token_to_button(self.consume(TK![Word])?, self.input)?;
+                self.consume(TK![EOI])?;
                 Ok(Some(Expression::Press(button)))
             }
             TK![Release] => {
-                let _ = self.consume(TK![Release]);
+                self.consume(TK![Release])?;
                 let button = token_to_button(self.consume(TK![Word])?, self.input)?;
+                self.consume(TK![EOI])?;
                 Ok(Some(Expression::Release(button)))
             }
             TK![Sleep] => {
-                let _ = self.consume(TK![Sleep]);
+                self.consume(TK![Sleep])?;
                 let time = token_to_float(self.consume(TK![Float])?, self.input).unwrap();
+                self.consume(TK![EOI])?;
                 Ok(Some(Expression::Sleep(time)))
             }
             TK![Type] => {
-                let _ = self.consume(TK![Type]);
+                self.consume(TK![Type])?;
                 let string = token_to_string(self.consume(TK![String])?, self.input).unwrap();
+                self.consume(TK![EOI])?;
                 Ok(Some(Expression::Type(string)))
             }
+            TK![Await] => {
+                self.consume(TK![Await])?;
+                self.consume(TK![EOI])?;
+                Ok(Some(Expression::Await))
+            }
+            TK![Bind] => {
+                self.consume(TK![Bind])?;
+                let button = token_to_button(self.consume(TK![Word])?, self.input)?;
+                self.consume(TK![LBrace])?;
+
+                let mut valid_tokens: Vec<Token> = Vec::new();
+                loop {
+                    let token = self.next().ok_or_else(|| {
+                        tracing::error!("Missing '}}' character, '{{' was never closed");
+                        anyhow::anyhow!("Parsing failed")
+                    })?;
+
+                    match token.kind {
+                        _break @ TK![RBrace] => break,
+                        invalid @ TK![LBrace] | invalid @ TK![Await] | invalid @ TK![def] | invalid @ TK![Bind] => {
+                            tracing::error!("Invalid token '{}' inside bind", invalid);
+                            Err(anyhow::anyhow!("Parsing failed"))?;
+                        }
+                        _ => valid_tokens.push(token),
+                    }
+                }
+
+                let inner_expressions: Vec<Expression> =  Parser {
+                    input: &self.input[..],
+                    tokens: valid_tokens.into_iter().peekable()
+                }.process()?;
+
+                Ok(Some(Expression::Bind(button, inner_expressions)))
+                
+            }
             TK![EOI] => {
-                let _ = self.consume(TK![EOI]);
+                self.consume(TK![EOI])?;
                 self.parse_expression()
             }
             TK![EOF] => Ok(None),
@@ -167,4 +212,34 @@ impl<'input> Iterator for TokenIter<'input> {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use crate::{compiler::{
+        button::Button,
+        expression::Expression,
+    }, keymap, mousemap};
+    use super::Parser;
+
+    #[test]
+    fn long() {
+        keymap::KeyMap::test_init();
+        mousemap::MouseMap::test_init();
+        let input: &str = "define RESOLUTION = 1920, 1080\nBind NR1 {\n  Move 1070, 234\n  Tap LMB\n}\n Press LMB; Sleep 0.1; Release LMB\nTap Space\nType \"Hello World\"";
+        let mut parser = Parser::new(input);
+        let expressions = parser.process().unwrap();
+        assert_eq!(
+            vec![
+                Expression::Resolution((1920, 1080)),
+                Expression::Bind(Button::K(inputbot::KeybdKey::Numrow1Key), vec![
+                    Expression::Move((1070, 234)),
+                    Expression::Tap(Button::M(inputbot::MouseButton::LeftButton))
+                ]),
+                Expression::Press(Button::M(inputbot::MouseButton::LeftButton)),
+                Expression::Sleep(0.1),
+                Expression::Release(Button::M(inputbot::MouseButton::LeftButton)),
+                Expression::Tap(Button::K(inputbot::KeybdKey::SpaceKey)),
+                Expression::Type("Hello World".to_string())
+            ],
+            expressions
+        )
+    }
+}

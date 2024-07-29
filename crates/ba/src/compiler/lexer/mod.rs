@@ -11,6 +11,8 @@ pub struct Lexer<'input> {
     position: usize,
     // for error accuracy
     line: usize,
+    // to place an EOI before EOF
+    pre_eof: bool,
     eof: bool,
     rules: Vec<Rule>,
 }
@@ -21,6 +23,7 @@ impl<'input> Lexer<'input> {
             input,
             position: 0,
             line: 1,
+            pre_eof: false,
             eof: false,
             rules: get_rules(),
         }
@@ -97,15 +100,24 @@ impl<'input> Iterator for Lexer<'input> {
             if self.eof {
                 return None;
             }
-            self.eof = true;
+            if self.pre_eof {
+                self.eof = true;
+                return Some(Token {
+                    kind: TK![EOF],
+                    span: Span {
+                        start: self.position,
+                        end: self.position,
+                    },
+                });
+            }
+
+            self.pre_eof = true;
             Some(Token {
-                kind: TK![EOF],
-                span: Span {
-                    start: self.position,
-                    end: self.position,
-                },
+                kind: TK![EOI],
+                span: Span {start: self.position, end: self.position}
             })
-        } else {
+        }
+        else {
             Some(self.next_token(&self.input[self.position..]))
         }
     }
@@ -145,7 +157,45 @@ mod tests {
                 TK![Sleep],
                 TK![ws],
                 TK![Float],
+                TK![EOI],
                 TK![EOF]
+            ]
+        )
+    }
+
+    #[test]
+    fn medium() {
+        let input: &str = "Bind NR1 {\n  Tap LMB\n  Sleep 0.1\n}\nAwait";
+        let mut lexer = Lexer::new(input);
+        let token_kinds: Vec<TokenKind> = lexer
+            .tokenize()
+            .into_iter()
+            .map(|token| token.kind)
+            .collect();
+        assert_eq!(
+            token_kinds,
+            vec![
+                TK![Bind],
+                TK![ws],
+                TK![Word],
+                TK![ws],
+                TK![LBrace],
+                TK![EOI],
+                TK![ws],
+                TK![Tap],
+                TK![ws],
+                TK![Word],
+                TK![EOI],
+                TK![ws],
+                TK![Sleep],
+                TK![ws],
+                TK![Float],
+                TK![EOI],
+                TK![RBrace],
+                TK![EOI],
+                TK![Await],
+                TK![EOI],
+                TK![EOF],
             ]
         )
     }
@@ -189,6 +239,7 @@ mod tests {
                 TK![Type],
                 TK![ws],
                 TK![String],
+                TK![EOI],
                 TK![EOF]
             ]
         )

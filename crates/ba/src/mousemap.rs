@@ -30,6 +30,11 @@ impl MouseMap {
     pub fn get() -> &'static Self {
         MOUSEMAP.get().unwrap()
     }
+
+    #[cfg(test)]
+    pub fn test_init() {
+        MOUSEMAP.set(MouseMap::from(&DEFAULT_MOUSEMAP[..])).unwrap();
+    }
 }
 
 impl std::ops::Deref for MouseMap {

@@ -1,4 +1,4 @@
-use crate::{common::*, public::*};
+use crate::public::*;
 use std::{
     ffi::c_int,
     mem::{size_of, MaybeUninit},
@@ -6,7 +6,7 @@ use std::{
 };
 use windows::Win32::UI::{
     Input::KeyboardAndMouse::{
-        GetAsyncKeyState, GetKeyState, MapVirtualKeyW, RegisterHotKey, SendInput, UnregisterHotKey,
+        GetAsyncKeyState, GetKeyState, MapVirtualKeyW, RegisterHotKey, SendInput,
         HOT_KEY_MODIFIERS, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT,
         KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP, KEYEVENTF_SCANCODE, KEYEVENTF_UNICODE,
         MAP_VIRTUAL_KEY_TYPE, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
@@ -14,7 +14,7 @@ use windows::Win32::UI::{
         MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, MOUSEINPUT, MOUSE_EVENT_FLAGS,
         VIRTUAL_KEY, VK_PACKET,
     },
-    WindowsAndMessaging::{GetCursorPos, GetMessageW, SetCursorPos, MSG},
+    WindowsAndMessaging::{GetCursorPos, GetMessageW, SetCursorPos, MSG, PM_REMOVE},
 };
 
 mod inputs;
@@ -78,22 +78,14 @@ impl KeybdKey {
         callback: F,
     ) -> thread::JoinHandle<()> {
         thread::spawn(move || {
-            unsafe {
-                RegisterHotKey(
-                    None,
-                    hotkey_id,
-                    HOT_KEY_MODIFIERS(0),
-                    u64::from(self) as u32,
-                )
-                .unwrap()
-            };
-
-            let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
-            unsafe { GetMessageW(&mut msg, None, 0, 0) };
-
-            callback();
-
-            unsafe { UnregisterHotKey(None, 1).unwrap() };
+            if let Err(err) = unsafe { RegisterHotKey(None, hotkey_id, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) } {
+                tracing::error!("Failed to bind HotKey, '{}'", err);
+                callback();
+            } else {
+                let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
+                unsafe { GetMessageW(&mut msg, None, 0, 0) };
+                callback();
+            }
         })
     }
 }

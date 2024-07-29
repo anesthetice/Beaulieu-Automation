@@ -1,5 +1,5 @@
 use oneshot::{Receiver, TryRecvError};
-use std::thread::{self, JoinHandle};
+use std::thread::JoinHandle;
 
 use crate::compiler::button::Button;
 
@@ -9,7 +9,7 @@ pub(super) struct Watcher {
 }
 
 impl Watcher {
-    pub(super) fn new(button: Button) -> Self {
+    pub(super) fn new(button: Button) -> anyhow::Result<Self> {
         let (sender, receiver) = oneshot::channel::<()>();
         let handle = button
             .listen_once(1, move || {
@@ -24,7 +24,7 @@ impl Watcher {
                 };
             })
             .unwrap();
-        Self { receiver, handle }
+        Ok(Self { receiver, handle })
     }
 
     pub(super) fn check(&self) -> bool {
@@ -41,7 +41,7 @@ impl Watcher {
         }
     }
 
-    pub(super) fn clean(self) {
+    pub(super) fn post_halt(self) {
         match self.handle.join() {
             Ok(()) => tracing::debug!("Watcher thread successfully joined"),
             Err(err) => tracing::warn!("Watcher thread panicked '{:?}'", err),
