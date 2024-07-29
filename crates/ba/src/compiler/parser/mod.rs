@@ -1,10 +1,8 @@
 use std::iter::Peekable;
 
-use ast::{token_to_button, token_to_float, token_to_position, token_to_string};
-use windows::Win32::Foundation::TPM_20_E_OBJECT_MEMORY;
-
 use super::{expression::Expression, lexer::Lexer, Span, Token, TokenKind};
 use crate::TK;
+use ast::{token_to_button, token_to_float, token_to_position, token_to_string};
 
 mod ast;
 
@@ -157,7 +155,10 @@ where
 
                     match token.kind {
                         _break @ TK![RBrace] => break,
-                        invalid @ TK![LBrace] | invalid @ TK![Await] | invalid @ TK![def] | invalid @ TK![Bind] => {
+                        invalid @ TK![LBrace]
+                        | invalid @ TK![Await]
+                        | invalid @ TK![def]
+                        | invalid @ TK![Bind] => {
                             tracing::error!("Invalid token '{}' inside bind", invalid);
                             Err(anyhow::anyhow!("Parsing failed"))?;
                         }
@@ -165,13 +166,16 @@ where
                     }
                 }
 
-                let inner_expressions: Vec<Expression> =  Parser {
-                    input: &self.input[..],
-                    tokens: valid_tokens.into_iter().peekable()
-                }.process()?;
+                let span = tracing::span!(tracing::Level::TRACE, "Bind Parsing");
+                let _guard = span.enter();
+                let inner_expressions: Vec<Expression> = Parser {
+                    input: self.input,
+                    tokens: valid_tokens.into_iter().peekable(),
+                }
+                .process()?;
+                drop(_guard);
 
                 Ok(Some(Expression::Bind(button, inner_expressions)))
-                
             }
             TK![EOI] => {
                 self.consume(TK![EOI])?;
@@ -213,11 +217,11 @@ impl<'input> Iterator for TokenIter<'input> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{compiler::{
-        button::Button,
-        expression::Expression,
-    }, keymap, mousemap};
     use super::Parser;
+    use crate::{
+        compiler::{button::Button, expression::Expression},
+        keymap, mousemap,
+    };
 
     #[test]
     fn long() {
@@ -229,10 +233,13 @@ mod tests {
         assert_eq!(
             vec![
                 Expression::Resolution((1920, 1080)),
-                Expression::Bind(Button::K(inputbot::KeybdKey::Numrow1Key), vec![
-                    Expression::Move((1070, 234)),
-                    Expression::Tap(Button::M(inputbot::MouseButton::LeftButton))
-                ]),
+                Expression::Bind(
+                    Button::K(inputbot::KeybdKey::Numrow1Key),
+                    vec![
+                        Expression::Move((1070, 234)),
+                        Expression::Tap(Button::M(inputbot::MouseButton::LeftButton))
+                    ]
+                ),
                 Expression::Press(Button::M(inputbot::MouseButton::LeftButton)),
                 Expression::Sleep(0.1),
                 Expression::Release(Button::M(inputbot::MouseButton::LeftButton)),

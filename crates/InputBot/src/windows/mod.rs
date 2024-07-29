@@ -74,11 +74,12 @@ impl KeybdKey {
 
     pub fn listen_once<F: FnOnce() -> () + Send + 'static>(
         self,
-        hotkey_id: i32,
         callback: F,
     ) -> thread::JoinHandle<()> {
         thread::spawn(move || {
-            if let Err(err) = unsafe { RegisterHotKey(None, hotkey_id, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) } {
+            if let Err(err) =
+                unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
+            {
                 tracing::error!("Failed to bind HotKey, '{}'", err);
                 callback();
             } else {
@@ -87,6 +88,24 @@ impl KeybdKey {
                 callback();
             }
         })
+    }
+
+    pub fn detached_hotkey<F: Fn() -> () + Send + 'static>(self, callback: F) {
+        thread::spawn(move || {
+            if let Err(err) =
+                unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
+            {
+                tracing::error!("Failed to bind HotKey, '{}'", err);
+                callback();
+            } else {
+                loop {
+                    let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
+                    unsafe { GetMessageW(&mut msg, None, 0, 0) };
+                    tracing::info!("HotKey bound to '{:?}' pressed", self);
+                    callback();
+                }
+            }
+        });
     }
 }
 

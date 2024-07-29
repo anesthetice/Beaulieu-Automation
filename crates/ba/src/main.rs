@@ -83,10 +83,10 @@ fn main() -> anyhow::Result<()> {
         .with_thread_ids(true)
         .with_thread_names(true);
 
-    let filter_logfile = LevelFilter::DEBUG;
+    let filter_logfile = LevelFilter::TRACE;
 
     #[cfg(debug_assertions)]
-    let filter_terminal = LevelFilter::DEBUG;
+    let filter_terminal = LevelFilter::TRACE;
     #[cfg(not(debug_assertions))]
     let filter_terminal =
         EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("warn"));

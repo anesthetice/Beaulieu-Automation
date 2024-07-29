@@ -44,11 +44,22 @@ impl Button {
     }
     pub(super) fn listen_once<F: FnOnce() -> () + Send + 'static>(
         self,
-        hotkey_id: i32,
         callback: F,
     ) -> anyhow::Result<std::thread::JoinHandle<()>> {
         match self {
-            Self::K(a) => Ok(a.listen_once(hotkey_id, callback)),
+            Self::K(a) => Ok(a.listen_once(callback)),
+            Self::M(_) => {
+                tracing::error!("Mouse buttons cannot be bound, use keys instead");
+                Err(anyhow::anyhow!("Cannot bind mouse button"))
+            }
+        }
+    }
+    pub(super) fn detached_hotkey<F: Fn() -> () + Send + 'static>(
+        self,
+        callback: F,
+    ) -> anyhow::Result<()> {
+        match self {
+            Self::K(a) => Ok(a.detached_hotkey(callback)),
             Self::M(_) => {
                 tracing::error!("Mouse buttons cannot be bound, use keys instead");
                 Err(anyhow::anyhow!("Cannot bind mouse button"))

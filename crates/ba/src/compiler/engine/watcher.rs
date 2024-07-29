@@ -12,7 +12,7 @@ impl Watcher {
     pub(super) fn new(button: Button) -> anyhow::Result<Self> {
         let (sender, receiver) = oneshot::channel::<()>();
         let handle = button
-            .listen_once(1, move || {
+            .listen_once(move || {
                 tracing::info!("Halt key pressed");
                 match sender.send(()) {
                     Ok(()) => tracing::debug!("Halt message sent"),

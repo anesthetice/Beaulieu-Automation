@@ -114,10 +114,12 @@ impl<'input> Iterator for Lexer<'input> {
             self.pre_eof = true;
             Some(Token {
                 kind: TK![EOI],
-                span: Span {start: self.position, end: self.position}
+                span: Span {
+                    start: self.position,
+                    end: self.position,
+                },
             })
-        }
-        else {
+        } else {
             Some(self.next_token(&self.input[self.position..]))
         }
     }
