@@ -59,10 +59,6 @@ impl Engine {
             })?;
         tracing::debug!("global halt key = {:?}", global_halt_key);
 
-        let width_ratio: f64 = host_resolution.0 as f64 / script_resolution.0 as f64;
-        let height_ratio: f64 = host_resolution.1 as f64 / script_resolution.1 as f64;
-        let modify_positions = (width_ratio != 1.0) | (height_ratio != 1.0);
-
         // extract and launch binds
         let mut buttons_in_use = vec![global_halt_key.clone()];
         while let Some(idx) = expressions
@@ -73,6 +69,9 @@ impl Engine {
                 Expression::Bind(key, sub_expressions) => (key, sub_expressions),
                 _ => unreachable!(),
             };
+            let sub_expressions =
+                Engine::adapt_expressions(sub_expressions, host_resolution, script_resolution);
+
             tracing::info!("Attempting to bind '{:?}' as a HotKey", button);
             tracing::trace!("HotKey expressions = {:?}", sub_expressions);
             if buttons_in_use.contains(&button) {
@@ -89,23 +88,8 @@ impl Engine {
             })?;
         }
 
-        let expressions: Vec<Expression> = expressions
-            .into_iter()
-            .filter(|expr| !expr.is_handled_at_init())
-            .map(|expr| match expr {
-                expr @ Expression::Move((x, y)) => {
-                    if modify_positions {
-                        Expression::Move((
-                            (x as f64 * width_ratio).floor() as i32,
-                            (y as f64 * height_ratio).floor() as i32,
-                        ))
-                    } else {
-                        expr
-                    }
-                }
-                other => other,
-            })
-            .collect();
+        let expressions =
+            Engine::adapt_expressions(expressions, host_resolution, script_resolution);
 
         Ok(Self {
             inner: expressions,
@@ -142,5 +126,33 @@ impl Engine {
         tracing::info!("Engine finished running");
 
         Ok(())
+    }
+
+    fn adapt_expressions(
+        expressions: Vec<Expression>,
+        host_resolution: (i32, i32),
+        script_resolution: (i32, i32),
+    ) -> Vec<Expression> {
+        let width_ratio: f64 = host_resolution.0 as f64 / script_resolution.0 as f64;
+        let height_ratio: f64 = host_resolution.1 as f64 / script_resolution.1 as f64;
+        let modify_positions = (width_ratio != 1.0) | (height_ratio != 1.0);
+
+        expressions
+            .into_iter()
+            .filter(|expr| !expr.is_handled_at_init())
+            .map(|expr| match expr {
+                expr @ Expression::Move((x, y)) => {
+                    if modify_positions {
+                        Expression::Move((
+                            (x as f64 * width_ratio).floor() as i32,
+                            (y as f64 * height_ratio).floor() as i32,
+                        ))
+                    } else {
+                        expr
+                    }
+                }
+                other => other,
+            })
+            .collect()
     }
 }

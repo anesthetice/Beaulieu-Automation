@@ -14,7 +14,7 @@ use windows::Win32::UI::{
         MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, MOUSEINPUT, MOUSE_EVENT_FLAGS,
         VIRTUAL_KEY, VK_PACKET,
     },
-    WindowsAndMessaging::{GetCursorPos, GetMessageW, SetCursorPos, MSG, PM_REMOVE},
+    WindowsAndMessaging::{GetCursorPos, GetMessageW, SetCursorPos, MSG},
 };
 
 mod inputs;
@@ -72,7 +72,7 @@ impl KeybdKey {
         unsafe { GetKeyState(u64::from(self) as i32) & 15 != 0 }
     }
 
-    pub fn listen_once<F: FnOnce() -> () + Send + 'static>(
+    pub fn listen_once<F: FnOnce() + Send + 'static>(
         self,
         callback: F,
     ) -> thread::JoinHandle<()> {
@@ -90,7 +90,7 @@ impl KeybdKey {
         })
     }
 
-    pub fn detached_hotkey<F: Fn() -> () + Send + 'static>(self, callback: F) {
+    pub fn detached_hotkey<F: Fn() + Send + 'static>(self, callback: F) {
         thread::spawn(move || {
             if let Err(err) =
                 unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }

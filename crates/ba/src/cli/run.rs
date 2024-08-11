@@ -8,7 +8,7 @@ use std::{
     path::{absolute, PathBuf},
 };
 
-pub(super) fn run_subcommand() -> Command {
+pub(super) fn subcommand() -> Command {
     Command::new("run")
         .aliases(["start", "execute", "launch"])
         .about("Runs the specified BA application")
@@ -29,18 +29,12 @@ pub(super) fn run_subcommand() -> Command {
         )
 }
 
-pub fn process_run_subcommand(
-    arg_matches: &ArgMatches,
-    resolution: (i32, i32),
-) -> anyhow::Result<PO> {
-    let Some(arg_matches) = arg_matches.subcommand_matches("run") else {
-        return Ok(PO::Continue);
-    };
+#[instrument(name = "run-subcommand", skip_all)]
+pub(super) fn process(arg_matches: &ArgMatches, resolution: (i32, i32)) -> anyhow::Result<()> {
+    let path = arg_matches
+        .get_one::<PathBuf>("path")
+        .ok_or(anyhow!("Failed to extract a valid path/name"))?;
 
-    let Some(path) = arg_matches.get_one::<PathBuf>("path") else {
-        tracing::error!("Failed to extract a valid path/name");
-        return Ok(PO::Exit);
-    };
     let absolute_path = absolute(path)
         .map_err(|err| {
             tracing::warn!(
@@ -53,11 +47,9 @@ pub fn process_run_subcommand(
         .unwrap_or(path.clone());
 
     if !path.is_dir() {
-        tracing::error!("Specified path/name does not exist");
-        return Ok(PO::Exit);
+        Err(anyhow!("Specified path/name does not exist"))?;
     } else if path.extension().is_some() {
-        tracing::error!("Path required, got filepath instead");
-        return Ok(PO::Exit);
+        Err(anyhow!("Path required, got filepath instead"))?;
     }
 
     let nb_cycles = *arg_matches.get_one::<usize>("repetitions").unwrap_or(&1);
@@ -92,5 +84,5 @@ pub fn process_run_subcommand(
     let engine = Engine::new(parsed, resolution)?;
     engine.start(nb_cycles)?;
 
-    Ok(PO::Exit)
+    Ok(())
 }
