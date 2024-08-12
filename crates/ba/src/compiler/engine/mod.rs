@@ -60,7 +60,7 @@ impl Engine {
         tracing::debug!("global halt key = {:?}", global_halt_key);
 
         // extract and launch binds
-        let mut buttons_in_use = vec![global_halt_key.clone()];
+        let mut buttons_in_use = vec![global_halt_key];
         while let Some(idx) = expressions
             .iter()
             .position(|expr| matches!(expr, Expression::Bind(..)))
@@ -84,6 +84,7 @@ impl Engine {
             button.detached_hotkey(move || {
                 for expr in sub_expressions.iter() {
                     expr.execute();
+                    std::thread::sleep(delay_between_actions);
                 }
             })?;
         }
