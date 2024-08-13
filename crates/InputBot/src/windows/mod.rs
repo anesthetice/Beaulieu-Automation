@@ -6,7 +6,13 @@ use std::{
 };
 use windows::Win32::UI::{
     Input::KeyboardAndMouse::{
-        GetAsyncKeyState, GetKeyState, MapVirtualKeyW, RegisterHotKey, SendInput, UnregisterHotKey, HOT_KEY_MODIFIERS, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT, KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP, KEYEVENTF_SCANCODE, KEYEVENTF_UNICODE, MAP_VIRTUAL_KEY_TYPE, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, MOUSEINPUT, MOUSE_EVENT_FLAGS, VIRTUAL_KEY, VK_PACKET
+        GetAsyncKeyState, GetKeyState, MapVirtualKeyW, RegisterHotKey, SendInput, UnregisterHotKey,
+        HOT_KEY_MODIFIERS, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT,
+        KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP, KEYEVENTF_SCANCODE, KEYEVENTF_UNICODE,
+        MAP_VIRTUAL_KEY_TYPE, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
+        MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
+        MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, MOUSEINPUT, MOUSE_EVENT_FLAGS,
+        VIRTUAL_KEY, VK_PACKET,
     },
     WindowsAndMessaging::{GetCursorPos, GetMessageW, SetCursorPos, MSG},
 };
@@ -66,10 +72,7 @@ impl KeybdKey {
         unsafe { GetKeyState(u64::from(self) as i32) & 15 != 0 }
     }
 
-    pub fn listen_once<F: FnOnce() + Send + 'static>(
-        self,
-        callback: F,
-    ) -> thread::JoinHandle<()> {
+    pub fn listen_once<F: FnOnce() + Send + 'static>(self, callback: F) -> thread::JoinHandle<()> {
         thread::spawn(move || {
             if let Err(err) =
                 unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
@@ -85,12 +88,14 @@ impl KeybdKey {
     }
 
     pub fn await_in_place(self) -> anyhow::Result<()> {
-        if let Err(err) = unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) } {
+        if let Err(err) =
+            unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
+        {
             tracing::error!("Failed to bind HotKey, '{}'", err);
             Err(anyhow::anyhow!("Failed to register HotKey"))?;
         }
         let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
-        unsafe { 
+        unsafe {
             GetMessageW(&mut msg, None, 0, 0);
             UnregisterHotKey(None, 0)?;
         }
@@ -103,8 +108,7 @@ impl KeybdKey {
                 unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
             {
                 tracing::error!("Failed to bind HotKey, '{}'", err);
-            } 
-            else {
+            } else {
                 loop {
                     let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
                     unsafe { GetMessageW(&mut msg, None, 0, 0) };

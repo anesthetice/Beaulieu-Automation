@@ -1,15 +1,24 @@
-use super::expression::Expression;
+use std::time::Duration;
+
+use crate::compiler::expression::adapt_expressions;
+
+use super::{button::Button, expression::Expression};
 
 mod watcher;
+use oneshot::TryRecvError;
 use watcher::Watcher;
 
 pub struct Engine {
     inner: Vec<Expression>,
     watcher: Watcher,
     delay: std::time::Duration,
+    buttons_in_use: Vec<Button>,
 }
 
 impl Engine {
+    // 50 milliseconds
+    const MAIN_THREAD_DELAY_BETWEEN_CHECKS: Duration = Duration::new(0, 50000000);
+
     pub fn new(
         mut expressions: Vec<Expression>,
         host_resolution: (i32, i32),
@@ -70,10 +79,10 @@ impl Engine {
                 _ => unreachable!(),
             };
             let sub_expressions =
-                Engine::adapt_expressions(sub_expressions, host_resolution, script_resolution);
+                adapt_expressions(sub_expressions, host_resolution, script_resolution);
 
             tracing::info!("Attempting to bind '{:?}' as a HotKey", button);
-            tracing::trace!("HotKey expressions = {:?}", sub_expressions);
+            tracing::trace!("with subexpressions {:?}", sub_expressions);
             if buttons_in_use.contains(&button) {
                 Err(anyhow::anyhow!(
                     "Failed to bind the button '{:?}' as it is already in use",
@@ -89,78 +98,68 @@ impl Engine {
             })?;
         }
 
-        let expressions =
-            Engine::adapt_expressions(expressions, host_resolution, script_resolution);
+        let expressions = adapt_expressions(expressions, host_resolution, script_resolution);
 
         Ok(Self {
             inner: expressions,
             watcher: Watcher::new(global_halt_key)?,
             delay: delay_between_actions,
+            buttons_in_use,
         })
     }
 
     pub fn start(self, nb_cycles: usize) -> anyhow::Result<()> {
-        for cycle_idx in 0..nb_cycles {
-            tracing::info!("cycle {}/{}", cycle_idx + 1, nb_cycles);
-            for expr in self.inner.iter() {
-                if self.watcher.check() {
-                    self.watcher.post_halt();
-                    return Err(anyhow::anyhow!("Engine manually stopped"));
-                }
-
-                match expr {
-                    Expression::Await => {
-                        tracing::info!("Reached lone 'Await' instruction, awaiting indefinitely...");
-                        loop {
-                            if self.watcher.check() {
-                                self.watcher.post_halt();
-                                return Err(anyhow::anyhow!("Engine manually stopped"));
-                            }
-                            std::thread::sleep(self.delay);
-                        }
-                    },
-                    Expression::AwaitKey(key) => {
-                        key.await_in_place()?
-                    }
-                    _ => {
-                        expr.execute();
-                        std::thread::sleep(self.delay);
-                    }
-                }
-
+        let executor_receiver = Self::spawn_executor(self.inner, self.delay, nb_cycles, self.buttons_in_use);
+        loop {
+            if self.watcher.check() {
+                self.watcher.post_halt();
+                return Ok(());
             }
+            match executor_receiver.try_recv() {
+                Ok(()) => return Ok(()),
+                Err(TryRecvError::Empty) => (),
+                Err(TryRecvError::Disconnected) => {
+                    tracing::error!("Executor thread disconnected");
+                    Err(anyhow::anyhow!(
+                        "Program halted, executor thread stopped unexpectedly"
+                    ))?
+                }
+            }
+            std::thread::sleep(Self::MAIN_THREAD_DELAY_BETWEEN_CHECKS);
         }
-
-        tracing::info!("Engine finished running");
-
-        Ok(())
     }
 
-    fn adapt_expressions(
+    pub fn spawn_executor(
         expressions: Vec<Expression>,
-        host_resolution: (i32, i32),
-        script_resolution: (i32, i32),
-    ) -> Vec<Expression> {
-        let width_ratio: f64 = host_resolution.0 as f64 / script_resolution.0 as f64;
-        let height_ratio: f64 = host_resolution.1 as f64 / script_resolution.1 as f64;
-        let modify_positions = (width_ratio != 1.0) | (height_ratio != 1.0);
+        delay: std::time::Duration,
+        nb_cycles: usize,
+        buttons_in_use: Vec<Button>
+    ) -> oneshot::Receiver<()> {
+        let (sender, receiver) = oneshot::channel::<()>();
 
-        expressions
-            .into_iter()
-            .filter(|expr| !expr.is_handled_at_init())
-            .map(|expr| match expr {
-                expr @ Expression::Move((x, y)) => {
-                    if modify_positions {
-                        Expression::Move((
-                            (x as f64 * width_ratio).floor() as i32,
-                            (y as f64 * height_ratio).floor() as i32,
-                        ))
-                    } else {
-                        expr
+        std::thread::spawn(move || {
+            'outer:
+            for cycle_idx in 0..nb_cycles {
+                tracing::info!("cycle {}/{}", cycle_idx + 1, nb_cycles);
+                for expr in expressions.iter() {
+                    match expr {
+                        Expression::AwaitKey(button) => {
+                            if buttons_in_use.contains(button) {
+                                tracing::error!("Cannot use '{:?}' to await as it is already in use", button);
+                                break 'outer;
+                            }
+                        }
+                        _ => (),
                     }
+                    expr.execute();
+                    std::thread::sleep(delay)
                 }
-                other => other,
-            })
-            .collect()
+            }
+            if let Err(err) = sender.send(()) {
+                tracing::error!("Executor failed to signal the main thread: '{err}'")
+            };
+        });
+
+        receiver
     }
 }

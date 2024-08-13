@@ -138,8 +138,19 @@ where
             }
             TK![Await] => {
                 self.consume(TK![Await])?;
-                self.consume(TK![EOI])?;
-                Ok(Some(Expression::Await))
+                let token = self.next().ok_or(anyhow::anyhow!(
+                    "Expected either an EOI or Button token after Await, found None"
+                ))?;
+                match token.kind {
+                    TK![EOI] => Ok(Some(Expression::Await)),
+                    TK![Word] => Ok(Some(Expression::AwaitKey(token_to_button(
+                        token, self.input,
+                    )?))),
+                    other => Err(anyhow::anyhow!(
+                        "Expected either an EOI or Button token after Await, found '{}'",
+                        other
+                    )),
+                }
             }
             TK![Bind] => {
                 self.consume(TK![Bind])?;
