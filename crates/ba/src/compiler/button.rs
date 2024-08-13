@@ -47,7 +47,16 @@ impl Button {
         callback: F,
     ) -> anyhow::Result<std::thread::JoinHandle<()>> {
         match self {
-            Self::K(a) => Ok(a.listen_once(callback)),
+            Self::K(key) => Ok(key.listen_once(callback)),
+            Self::M(_) => {
+                tracing::error!("Mouse buttons cannot be bound, use keys instead");
+                Err(anyhow::anyhow!("Cannot bind mouse button"))
+            }
+        }
+    }
+    pub(super) fn await_in_place(self) -> anyhow::Result<()> {
+        match self {
+            Self::K(key) => key.await_in_place(),
             Self::M(_) => {
                 tracing::error!("Mouse buttons cannot be bound, use keys instead");
                 Err(anyhow::anyhow!("Cannot bind mouse button"))
@@ -59,8 +68,8 @@ impl Button {
         callback: F,
     ) -> anyhow::Result<()> {
         match self {
-            Self::K(a) => {
-                a.detached_hotkey(callback);
+            Self::K(key) => {
+                key.detached_hotkey(callback);
                 Ok(())
             },
             Self::M(_) => {

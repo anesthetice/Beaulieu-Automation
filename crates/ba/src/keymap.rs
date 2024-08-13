@@ -66,7 +66,7 @@ impl From<Vec<(String, KeybdKey)>> for KeyMap {
     }
 }
 
-pub static DEFAULT_KEYMAP: [(&str, KeybdKey); 148] = [
+pub static DEFAULT_KEYMAP: [(&str, KeybdKey); 151] = [
     ("backspace", BackspaceKey),
     ("tab", TabKey),
     ("enter", EnterKey),
@@ -203,16 +203,19 @@ pub static DEFAULT_KEYMAP: [(&str, KeybdKey); 148] = [
     ("moins", DashKey),
     ("dash", DashKey),
     ("minus", DashKey),
-    ("eaccentgrave", EAccGraveKey),
-    ("eaccgrave", EAccGraveKey),
-    ("paragraphe", SectionKey),
-    ("section", SectionKey),
-    ("trema", TremaKey),
-    ("circonflexe", CircumflexKey),
-    ("circumflex", CircumflexKey),
-    ("eaccentaigu", EAccAiguKey),
-    ("eaccaigu", EAccAiguKey),
-    ("dollar", DollarSignKey),
-    ("pluspetitque", LessThanKey),
-    ("lessthan", LessThanKey),
+    ("eaccentgrave", OEM1),
+    ("eaccgrave", OEM1),
+    ("paragraphe", OEM2),
+    ("section", OEM2),
+    ("trema", OEM3),
+    ("apostrophe", OEM4),
+    ("aaccentgrave", OEM5),
+    ("aaccgrave", OEM5),
+    ("circonflexe", OEM6),
+    ("circumflex", OEM6),
+    ("eaccentaigu", OEM7),
+    ("eaccaigu", OEM7),
+    ("dollar", OEM8),
+    ("pluspetitque", OEM102),
+    ("lessthan", OEM102),
 ];

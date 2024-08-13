@@ -124,24 +124,15 @@ pub enum KeybdKey {
     PeriodKey,
     // OEM MINUS
     DashKey,
-    // OEM 1
-    EAccGraveKey,
-    // OEM 2
-    SectionKey,
-    // OEM 3
-    TremaKey,
-    // OEM 4
-    ApostropheKey,
-    // OEM 5
-    AAccGraveKey,
-    // OEM 6
-    CircumflexKey,
-    // OEM 7
-    EAccAiguKey,
-    // OEM 8
-    DollarSignKey,
-    // OEM 102
-    LessThanKey,
+    OEM1,
+    OEM2,
+    OEM3,
+    OEM4,
+    OEM5,
+    OEM6,
+    OEM7,
+    OEM8,
+    OEM102,
 
     OtherKey(u64),
 }

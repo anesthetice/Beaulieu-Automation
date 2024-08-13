@@ -108,19 +108,26 @@ impl Engine {
                     return Err(anyhow::anyhow!("Engine manually stopped"));
                 }
 
-                if matches!(expr, Expression::Await) {
-                    tracing::info!("Reached 'Await' instruction, awaiting indefinitely...");
-                    loop {
-                        if self.watcher.check() {
-                            self.watcher.post_halt();
-                            return Err(anyhow::anyhow!("Engine manually stopped"));
+                match expr {
+                    Expression::Await => {
+                        tracing::info!("Reached lone 'Await' instruction, awaiting indefinitely...");
+                        loop {
+                            if self.watcher.check() {
+                                self.watcher.post_halt();
+                                return Err(anyhow::anyhow!("Engine manually stopped"));
+                            }
+                            std::thread::sleep(self.delay);
                         }
+                    },
+                    Expression::AwaitKey(key) => {
+                        key.await_in_place()?
+                    }
+                    _ => {
+                        expr.execute();
                         std::thread::sleep(self.delay);
                     }
                 }
 
-                expr.execute();
-                std::thread::sleep(self.delay);
             }
         }
 

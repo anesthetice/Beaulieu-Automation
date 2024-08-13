@@ -12,6 +12,7 @@ pub enum Expression {
     Sleep(f64),
     Type(String),
     Await,
+    AwaitKey(Button),
     Bind(Button, Vec<Expression>),
 }
 
@@ -24,7 +25,7 @@ impl Expression {
             Self::GlobalHaltKey(_) => (),
             Self::Bind(..) => (),
 
-            // Handled directly
+            // Handled directly (non blocking)
             Self::Move(pos) => inputbot::MouseCursor::move_abs(pos.0, pos.1),
             Self::Tap(button) => button.tap(),
             Self::Press(button) => button.press(),
@@ -32,8 +33,9 @@ impl Expression {
             Self::Sleep(float) => std::thread::sleep(std::time::Duration::from_secs_f64(*float)),
             Self::Type(string) => inputbot::send_sequence(string),
 
-            // Handled seperately by engine
-            Self::Await => (),
+            // Handled seperately by engine (blocking)
+            Self::Await => unreachable!(),
+            Self::AwaitKey(_) => unreachable!(),
         }
     }
 

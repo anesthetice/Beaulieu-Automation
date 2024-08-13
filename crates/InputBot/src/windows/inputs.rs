@@ -122,24 +122,24 @@ impl From<KeybdKey> for u64 {
             PeriodKey => 0xBE,
             // OEM MINUS
             DashKey => 0xBD,
-            // OEM 1
-            EAccGraveKey => 0xBA,
-            // OEM 2
-            SectionKey => 0xBF,
-            // OEM 3
-            TremaKey => 0xC0,
-            // OEM 4
-            ApostropheKey => 0xDB,
-            // OEM 5
-            AAccGraveKey => 0xDC,
-            // OEM 6
-            CircumflexKey => 0xDD,
-            // OEM 7
-            EAccAiguKey => 0xDE,
-            // OEM 8
-            DollarSignKey => 0xDF,
-            // OEM 102
-            LessThanKey => 0xE2,
+            // è
+            OEM1 => 0xBA,
+            // §
+            OEM2 => 0xBF,
+            // e.g. ï
+            OEM3 => 0xC0,
+            // '
+            OEM4 => 0xDB,
+            // à
+            OEM5 => 0xDC,
+            // ^
+            OEM6 => 0xDD,
+            // é
+            OEM7 => 0xDE,
+            // $
+            OEM8 => 0xDF,
+            // <
+            OEM102 => 0xE2,
 
             OtherKey(code) => code,
         }
@@ -260,15 +260,15 @@ impl From<u64> for KeybdKey {
             0xBC => CommaKey,
             0xBE => PeriodKey,
             0xBD => DashKey,
-            0xBA => EAccGraveKey,
-            0xBF => SectionKey,
-            0xC0 => TremaKey,
-            0xDB => ApostropheKey,
-            0xDC => AAccGraveKey,
-            0xDD => CircumflexKey,
-            0xDE => EAccAiguKey,
-            0xDF => DollarSignKey,
-            0xE2 => LessThanKey,
+            0xBA => OEM1,
+            0xBF => OEM2,
+            0xC0 => OEM3,
+            0xDB => OEM4,
+            0xDC => OEM5,
+            0xDD => OEM6,
+            0xDE => OEM7,
+            0xDF => OEM8,
+            0xE2 => OEM102,
 
             _ => OtherKey(code),
         }
