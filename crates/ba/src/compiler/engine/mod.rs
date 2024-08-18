@@ -5,6 +5,7 @@ use crate::compiler::expression::adapt_expressions;
 use super::{button::Button, expression::Expression};
 
 mod watcher;
+use anyhow::Context;
 use oneshot::TryRecvError;
 use watcher::Watcher;
 
@@ -109,7 +110,9 @@ impl Engine {
     }
 
     pub fn start(self, nb_cycles: usize) -> anyhow::Result<()> {
-        let executor_receiver = Self::spawn_executor(self.inner, self.delay, nb_cycles, self.buttons_in_use);
+        let executor_receiver =
+            Self::spawn_executor(self.inner, self.delay, nb_cycles, self.buttons_in_use)
+                .context("Failed to spawn executor thread")?;
         loop {
             if self.watcher.check() {
                 self.watcher.post_halt();
@@ -133,33 +136,37 @@ impl Engine {
         expressions: Vec<Expression>,
         delay: std::time::Duration,
         nb_cycles: usize,
-        buttons_in_use: Vec<Button>
-    ) -> oneshot::Receiver<()> {
+        buttons_in_use: Vec<Button>,
+    ) -> anyhow::Result<oneshot::Receiver<()>> {
         let (sender, receiver) = oneshot::channel::<()>();
 
-        std::thread::spawn(move || {
-            'outer:
-            for cycle_idx in 0..nb_cycles {
-                tracing::info!("cycle {}/{}", cycle_idx + 1, nb_cycles);
-                for expr in expressions.iter() {
-                    match expr {
-                        Expression::AwaitKey(button) => {
-                            if buttons_in_use.contains(button) {
-                                tracing::error!("Cannot use '{:?}' to await as it is already in use", button);
-                                break 'outer;
+        std::thread::Builder::new()
+            .name(String::from("Executor"))
+            .spawn(move || {
+                'outer: for cycle_idx in 0..nb_cycles {
+                    tracing::info!("cycle {}/{}", cycle_idx + 1, nb_cycles);
+                    for expr in expressions.iter() {
+                        match expr {
+                            Expression::AwaitKey(button) => {
+                                if buttons_in_use.contains(button) {
+                                    tracing::error!(
+                                        "Cannot use '{:?}' to await as it is already in use",
+                                        button
+                                    );
+                                    break 'outer;
+                                }
                             }
+                            _ => (),
                         }
-                        _ => (),
+                        expr.execute();
+                        std::thread::sleep(delay)
                     }
-                    expr.execute();
-                    std::thread::sleep(delay)
                 }
-            }
-            if let Err(err) = sender.send(()) {
-                tracing::error!("Executor failed to signal the main thread: '{err}'")
-            };
-        });
+                if let Err(err) = sender.send(()) {
+                    tracing::error!("Executor failed to signal the main thread: '{err}'")
+                };
+            })?;
 
-        receiver
+        Ok(receiver)
     }
 }

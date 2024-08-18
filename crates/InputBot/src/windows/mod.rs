@@ -72,8 +72,8 @@ impl KeybdKey {
         unsafe { GetKeyState(u64::from(self) as i32) & 15 != 0 }
     }
 
-    pub fn listen_once<F: FnOnce() + Send + 'static>(self, callback: F) -> thread::JoinHandle<()> {
-        thread::spawn(move || {
+    pub fn listen_once<F: FnOnce() + Send + 'static>(self, callback: F) -> std::io::Result<thread::JoinHandle<()>> {
+        thread::Builder::new().name(format!("{:?} SingleListener", &self)).spawn(move || {
             if let Err(err) =
                 unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
             {
@@ -102,8 +102,8 @@ impl KeybdKey {
         Ok(())
     }
 
-    pub fn detached_hotkey<F: Fn() + Send + 'static>(self, callback: F) {
-        thread::spawn(move || {
+    pub fn detached_hotkey<F: Fn() + Send + 'static>(self, callback: F) -> std::io::Result<()> {
+        thread::Builder::new().name(format!("{:?} DetachedHotKey", &self)).spawn(move || {
             if let Err(err) =
                 unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
             {
@@ -116,7 +116,8 @@ impl KeybdKey {
                     callback();
                 }
             }
-        });
+        })?;
+        Ok(())
     }
 }
 

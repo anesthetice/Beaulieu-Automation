@@ -47,7 +47,7 @@ impl Button {
         callback: F,
     ) -> anyhow::Result<std::thread::JoinHandle<()>> {
         match self {
-            Self::K(key) => Ok(key.listen_once(callback)),
+            Self::K(key) => Ok(key.listen_once(callback)?),
             Self::M(_) => {
                 tracing::error!("Mouse buttons cannot be bound, use keys instead");
                 Err(anyhow::anyhow!("Cannot bind mouse button"))
@@ -69,7 +69,7 @@ impl Button {
     ) -> anyhow::Result<()> {
         match self {
             Self::K(key) => {
-                key.detached_hotkey(callback);
+                key.detached_hotkey(callback)?;
                 Ok(())
             }
             Self::M(_) => {

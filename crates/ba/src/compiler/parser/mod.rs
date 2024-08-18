@@ -1,6 +1,6 @@
 use std::iter::Peekable;
 
-use super::{expression::Expression, lexer::Lexer, Span, Token, TokenKind};
+use super::{expression::Expression, lexer::Lexer, Token, TokenKind};
 use crate::TK;
 use ast::{token_to_button, token_to_float, token_to_position, token_to_string};
 
