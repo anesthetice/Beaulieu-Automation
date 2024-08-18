@@ -146,17 +146,14 @@ impl Engine {
                 'outer: for cycle_idx in 0..nb_cycles {
                     tracing::info!("cycle {}/{}", cycle_idx + 1, nb_cycles);
                     for expr in expressions.iter() {
-                        match expr {
-                            Expression::AwaitKey(button) => {
-                                if buttons_in_use.contains(button) {
-                                    tracing::error!(
-                                        "Cannot use '{:?}' to await as it is already in use",
-                                        button
-                                    );
-                                    break 'outer;
-                                }
+                        if let Expression::AwaitKey(button) = expr {
+                            if buttons_in_use.contains(button) {
+                                tracing::error!(
+                                    "Cannot use '{:?}' to await as it is already in use",
+                                    button
+                                );
+                                break 'outer;
                             }
-                            _ => (),
                         }
                         expr.execute();
                         std::thread::sleep(delay)

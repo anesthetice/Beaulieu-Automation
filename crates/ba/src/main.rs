@@ -11,13 +11,16 @@ use tracing::{info, level_filters::LevelFilter};
 use directories::ProjectDirs;
 use tracing_subscriber::{
     fmt::{self, time::Uptime},
-    layer::SubscriberExt,
-    EnvFilter, Layer, Registry,
+    layer::SubscriberExt, Layer, Registry, 
 };
+
 use windows::Win32::UI::{
     Input::KeyboardAndMouse::GetKeyboardLayoutNameA,
     WindowsAndMessaging::{GetSystemMetrics, SYSTEM_METRICS_INDEX},
 };
+
+#[cfg(not(debug_assertions))]
+use tracing_subscriber::EnvFilter;
 
 fn main() -> anyhow::Result<()> {
     let local_offset = time::UtcOffset::current_local_offset().unwrap_or_else(|error| {

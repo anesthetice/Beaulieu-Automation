@@ -30,7 +30,7 @@ impl std::fmt::Display for Token {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub(super) struct Span {
+pub struct Span {
     // inclusive
     pub start: usize,
     // exclusive
@@ -60,8 +60,9 @@ impl std::ops::Index<Span> for str {
     }
 }
 
+#[allow(clippy::upper_case_acronyms)]
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub(super) enum TokenKind {
+pub enum TokenKind {
     // Operators
     Define,
     Eq,

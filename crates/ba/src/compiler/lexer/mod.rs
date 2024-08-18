@@ -29,6 +29,7 @@ impl<'input> Lexer<'input> {
         }
     }
 
+    #[cfg(test)]
     pub(super) fn tokenize(&mut self) -> Vec<Token> {
         self.collect()
     }

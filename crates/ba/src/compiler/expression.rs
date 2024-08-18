@@ -32,7 +32,7 @@ impl Expression {
             Self::Release(button) => button.release(),
             Self::Sleep(float) => std::thread::sleep(std::time::Duration::from_secs_f64(*float)),
             Self::Type(string) => inputbot::send_sequence(string),
-            Self::Await => loop {},
+            Self::Await => loop { std::thread::sleep(std::time::Duration::from_secs(5)) },
             Self::AwaitKey(button) => {
                 if let Err(err) = button.await_in_place() {
                     tracing::warn!("{}", err);
