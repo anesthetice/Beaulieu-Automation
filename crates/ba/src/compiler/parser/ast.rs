@@ -1,4 +1,5 @@
 use crate::compiler::{button::Button, Span, Token};
+
 // TokenKind check done by consume
 pub(super) fn token_to_button(token: Token, input: &str) -> anyhow::Result<Button> {
     let input = &input[token.span];

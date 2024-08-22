@@ -1,8 +1,7 @@
-use std::iter::Peekable;
-
 use super::{expression::Expression, lexer::Lexer, Token, TokenKind};
 use crate::TK;
 use ast::{token_to_button, token_to_float, token_to_position, token_to_string};
+use std::iter::Peekable;
 
 mod ast;
 
@@ -202,6 +201,18 @@ where
                 self.consume(TK![PrintClipboard])?;
                 self.consume(TK![EOI])?;
                 Ok(Some(Expression::PrintClipboard))
+            }
+            TK![ScrollUp] => {
+                self.consume(TK![ScrollUp])?;
+                let amount = token_to_float(self.consume(TK![Float])?, self.input)? as i32;
+                self.consume(TK![EOI])?;
+                Ok(Some(Expression::Scroll(amount)))
+            }
+            TK![ScrollDown] => {
+                self.consume(TK![ScrollDown])?;
+                let amount = token_to_float(self.consume(TK![Float])?, self.input)? as i32;
+                self.consume(TK![EOI])?;
+                Ok(Some(Expression::Scroll(-amount)))
             }
             TK![EOI] => {
                 self.consume(TK![EOI])?;

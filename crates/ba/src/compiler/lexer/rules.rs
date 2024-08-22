@@ -90,6 +90,14 @@ pub(super) fn get_rules() -> Vec<Rule> {
             matches: |input| match_keyword(input, "PrintClipboard"),
         },
         Rule {
+            kind: TK![ScrollUp],
+            matches: |input| match_keyword(input, "ScrollUp"),
+        },
+        Rule {
+            kind: TK![ScrollDown],
+            matches: |input| match_keyword(input, "ScrollDown"),
+        },
+        Rule {
             kind: TK![,],
             matches: |input| match_keyword(input, ","),
         },

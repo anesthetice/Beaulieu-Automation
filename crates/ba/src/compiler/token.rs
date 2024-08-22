@@ -79,6 +79,8 @@ pub enum TokenKind {
     Print,
     Println,
     PrintClipboard,
+    ScrollUp,
+    ScrollDown,
 
     // Delimiters
     Whitespace,
@@ -117,6 +119,9 @@ macro_rules! TK {
     [Print] => {$crate::compiler::token::TokenKind::Print};
     [Println] => {$crate::compiler::token::TokenKind::Println};
     [PrintClipboard] => {$crate::compiler::token::TokenKind::PrintClipboard};
+    [ScrollUp] => {$crate::compiler::token::TokenKind::ScrollUp};
+    [ScrollDown] => {$crate::compiler::token::TokenKind::ScrollDown};
+
 
     // Delimiters
     [ws] => {$crate::compiler::token::TokenKind::Whitespace};

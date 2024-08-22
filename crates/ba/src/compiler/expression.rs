@@ -1,5 +1,5 @@
 use super::button::Button;
-use inputbot::get_clipboard_string;
+use inputbot::{get_clipboard_string, MouseWheel};
 use std::io::Write;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -18,6 +18,7 @@ pub enum Expression {
     Bind(Button, Vec<Expression>),
     Print(String),
     PrintClipboard,
+    Scroll(i32),
 }
 
 impl Expression {
@@ -44,22 +45,15 @@ impl Expression {
                     tracing::warn!("{}", err);
                 }
             }
-            Self::Print(string) => {
-                if let Err(err) = std::io::stdout().write_all(string.as_bytes()) {
-                    tracing::warn!("Failed to print to stdout, '{}'", err);
-                }
-                tracing::trace!("Print expression output: {:?}", string);
-            }
+            Self::Print(string) => print_trace(string),
             Self::PrintClipboard => {
                 if let Some(string) = get_clipboard_string() {
-                    if let Err(err) = std::io::stdout().write_all(string.as_bytes()) {
-                        tracing::warn!("Failed to print to stdout, '{}'", err);
-                    }
-                    tracing::trace!("PrintCliboard expression output: {:?}", string);
+                    print_trace(&string)
                 } else {
-                    tracing::warn!("Failed to copy clipboard");
+                    tracing::warn!("Failed to copy the clipboard's content");
                 }
             }
+            Self::Scroll(value) => MouseWheel::scroll_ver_unscaled(*value),
         }
     }
 
@@ -100,4 +94,15 @@ pub fn adapt_expressions(
             other => other,
         })
         .collect()
+}
+
+pub fn print_trace(input: &str) {
+    tracing::trace!("Print expression output: {:?}", input);
+    let mut stdout = std::io::stdout();
+    if let Err(err) = stdout.write_all(input.as_bytes()) {
+        tracing::warn!("Failed to write to stdout, '{err}'");
+    }
+    if let Err(err) = stdout.flush() {
+        tracing::warn!("Failed to flush stdout, '{err}'");
+    }
 }
