@@ -11,10 +11,12 @@ use tracing::{info, level_filters::LevelFilter};
 use directories::ProjectDirs;
 use tracing_subscriber::{
     fmt::{self, time::Uptime},
-    layer::SubscriberExt, Layer, Registry, 
+    layer::SubscriberExt,
+    Layer, Registry,
 };
 
 use windows::Win32::UI::{
+    HiDpi::{SetThreadDpiAwarenessContext, DPI_AWARENESS_CONTEXT_SYSTEM_AWARE},
     Input::KeyboardAndMouse::GetKeyboardLayoutNameA,
     WindowsAndMessaging::{GetSystemMetrics, SYSTEM_METRICS_INDEX},
 };
@@ -128,7 +130,8 @@ fn main() -> anyhow::Result<()> {
         ))?
     }
 
-    // get primary monitor width and height
+    // get the width and height of the primary montior, SetThreadDpiAwarenessContext fixes issues with scale
+    unsafe { SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE) };
     let width = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(0)) };
     let height = unsafe { GetSystemMetrics(SYSTEM_METRICS_INDEX(1)) };
     tracing::info!("Primary monitor detected - {width}x{height}");

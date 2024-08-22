@@ -247,4 +247,44 @@ mod tests {
             ]
         )
     }
+
+    #[test]
+    fn misc() {
+        let input: &str = "Await nr1\nBind nr2 {\n  Println \"hello world\"\n}\nSleep 0.5 // Comment on same line";
+        let mut lexer = Lexer::new(input);
+        let token_kinds: Vec<TokenKind> = lexer
+            .tokenize()
+            .into_iter()
+            .map(|token| token.kind)
+            .collect();
+        assert_eq!(
+            token_kinds,
+            vec![
+                TK![Await],
+                TK![ws],
+                TK![Word],
+                TK![EOI],
+                TK![Bind],
+                TK![ws],
+                TK![Word],
+                TK![ws],
+                TK![LBrace],
+                TK![EOI],
+                TK![ws],
+                TK![Println],
+                TK![ws],
+                TK![String],
+                TK![EOI],
+                TK![RBrace],
+                TK![EOI],
+                TK![Sleep],
+                TK![ws],
+                TK![Float],
+                TK![ws],
+                TK![Comment],
+                TK![EOI],
+                TK![EOF],
+            ],
+        )
+    }
 }

@@ -1,4 +1,6 @@
 use super::button::Button;
+use inputbot::get_clipboard_string;
+use std::io::Write;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
@@ -14,6 +16,8 @@ pub enum Expression {
     Await,
     AwaitKey(Button),
     Bind(Button, Vec<Expression>),
+    Print(String),
+    PrintClipboard,
 }
 
 impl Expression {
@@ -32,10 +36,28 @@ impl Expression {
             Self::Release(button) => button.release(),
             Self::Sleep(float) => std::thread::sleep(std::time::Duration::from_secs_f64(*float)),
             Self::Type(string) => inputbot::send_sequence(string),
-            Self::Await => loop { std::thread::sleep(std::time::Duration::from_secs(5)) },
+            Self::Await => loop {
+                std::thread::sleep(std::time::Duration::from_secs(5))
+            },
             Self::AwaitKey(button) => {
                 if let Err(err) = button.await_in_place() {
                     tracing::warn!("{}", err);
+                }
+            }
+            Self::Print(string) => {
+                if let Err(err) = std::io::stdout().write_all(string.as_bytes()) {
+                    tracing::warn!("Failed to print to stdout, '{}'", err);
+                }
+                tracing::trace!("Print expression output: {:?}", string);
+            }
+            Self::PrintClipboard => {
+                if let Some(string) = get_clipboard_string() {
+                    if let Err(err) = std::io::stdout().write_all(string.as_bytes()) {
+                        tracing::warn!("Failed to print to stdout, '{}'", err);
+                    }
+                    tracing::trace!("PrintCliboard expression output: {:?}", string);
+                } else {
+                    tracing::warn!("Failed to copy clipboard");
                 }
             }
         }

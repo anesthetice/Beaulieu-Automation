@@ -74,6 +74,22 @@ pub(super) fn get_rules() -> Vec<Rule> {
             matches: |input| match_keyword(input, "Bind"),
         },
         Rule {
+            kind: TK![Print],
+            matches: |input| match_keyword(input, "Print"),
+        },
+        Rule {
+            kind: TK![Println],
+            matches: |input| match_keyword(input, "Println"),
+        },
+        Rule {
+            kind: TK![PrintClipboard],
+            matches: |input| match_keyword(input, "PrintClip"),
+        },
+        Rule {
+            kind: TK![PrintClipboard],
+            matches: |input| match_keyword(input, "PrintClipboard"),
+        },
+        Rule {
             kind: TK![,],
             matches: |input| match_keyword(input, ","),
         },

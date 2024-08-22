@@ -16,8 +16,33 @@ use windows::Win32::UI::{
     },
     WindowsAndMessaging::{GetCursorPos, GetMessageW, SetCursorPos, MSG},
 };
+use windows::Win32::{
+    Foundation::HGLOBAL,
+    System::{
+        DataExchange::{CloseClipboard, GetClipboardData, GetClipboardOwner, OpenClipboard},
+        Memory::GlobalSize,
+    },
+};
 
 mod inputs;
+
+/// get_clipboard attempts to collect the clipboard's content to a string
+/// returns None in case it fails
+pub fn get_clipboard_string() -> Option<String> {
+    unsafe {
+        use std::os::raw::c_void;
+        OpenClipboard(GetClipboardOwner()).ok()?;
+        // CF_TEXT = 1
+        // not using GlobalLock as we are not writing anything
+        let clipboard_data: *mut c_void = GetClipboardData(1).ok()?.0 as *mut c_void;
+        let size: usize = GlobalSize(HGLOBAL(clipboard_data));
+        let ptr: *const u8 = clipboard_data as *const u8;
+        let string: String =
+            String::from_utf8_lossy(std::slice::from_raw_parts(ptr, size)).to_string();
+        let _ = CloseClipboard();
+        Some(string.to_string())
+    }
+}
 
 pub fn send_sequence(input: &str) {
     let inputs: Vec<INPUT> = input
@@ -72,19 +97,24 @@ impl KeybdKey {
         unsafe { GetKeyState(u64::from(self) as i32) & 15 != 0 }
     }
 
-    pub fn listen_once<F: FnOnce() + Send + 'static>(self, callback: F) -> std::io::Result<thread::JoinHandle<()>> {
-        thread::Builder::new().name(format!("{:?} SingleListener", &self)).spawn(move || {
-            if let Err(err) =
-                unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
-            {
-                tracing::error!("Failed to bind HotKey, '{}'", err);
-                callback();
-            } else {
-                let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
-                unsafe { GetMessageW(&mut msg, None, 0, 0) };
-                callback();
-            }
-        })
+    pub fn listen_once<F: FnOnce() + Send + 'static>(
+        self,
+        callback: F,
+    ) -> std::io::Result<thread::JoinHandle<()>> {
+        thread::Builder::new()
+            .name(format!("{:?} SingleListener", &self))
+            .spawn(move || {
+                if let Err(err) =
+                    unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
+                {
+                    tracing::error!("Failed to bind HotKey, '{}'", err);
+                    callback();
+                } else {
+                    let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
+                    unsafe { GetMessageW(&mut msg, None, 0, 0) };
+                    callback();
+                }
+            })
     }
 
     pub fn await_in_place(self) -> anyhow::Result<()> {
@@ -103,20 +133,22 @@ impl KeybdKey {
     }
 
     pub fn detached_hotkey<F: Fn() + Send + 'static>(self, callback: F) -> std::io::Result<()> {
-        thread::Builder::new().name(format!("{:?} DetachedHotKey", &self)).spawn(move || {
-            if let Err(err) =
-                unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
-            {
-                tracing::error!("Failed to bind HotKey, '{}'", err);
-            } else {
-                loop {
-                    let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
-                    unsafe { GetMessageW(&mut msg, None, 0, 0) };
-                    tracing::info!("HotKey bound to '{:?}' pressed", self);
-                    callback();
+        thread::Builder::new()
+            .name(format!("{:?} DetachedHotKey", &self))
+            .spawn(move || {
+                if let Err(err) =
+                    unsafe { RegisterHotKey(None, 0, HOT_KEY_MODIFIERS(0), u64::from(self) as u32) }
+                {
+                    tracing::error!("Failed to bind HotKey, '{}'", err);
+                } else {
+                    loop {
+                        let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
+                        unsafe { GetMessageW(&mut msg, None, 0, 0) };
+                        tracing::info!("HotKey bound to '{:?}' pressed", self);
+                        callback();
+                    }
                 }
-            }
-        })?;
+            })?;
         Ok(())
     }
 }

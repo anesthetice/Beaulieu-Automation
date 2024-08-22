@@ -76,6 +76,9 @@ pub enum TokenKind {
     Type,
     Await,
     Bind,
+    Print,
+    Println,
+    PrintClipboard,
 
     // Delimiters
     Whitespace,
@@ -111,6 +114,9 @@ macro_rules! TK {
     [Type] => {$crate::compiler::token::TokenKind::Type};
     [Await] => {$crate::compiler::token::TokenKind::Await};
     [Bind] => {$crate::compiler::token::TokenKind::Bind};
+    [Print] => {$crate::compiler::token::TokenKind::Print};
+    [Println] => {$crate::compiler::token::TokenKind::Println};
+    [PrintClipboard] => {$crate::compiler::token::TokenKind::PrintClipboard};
 
     // Delimiters
     [ws] => {$crate::compiler::token::TokenKind::Whitespace};

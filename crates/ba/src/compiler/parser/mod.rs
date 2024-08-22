@@ -165,11 +165,8 @@ where
                     })?;
 
                     match token.kind {
-                        _break @ TK![RBrace] => break,
-                        invalid @ TK![LBrace]
-                        | invalid @ TK![Await]
-                        | invalid @ TK![def]
-                        | invalid @ TK![Bind] => {
+                        TK![RBrace] => break,
+                        invalid @ (TK![LBrace] | TK![Await] | TK![def] | TK![Bind]) => {
                             tracing::error!("Invalid token '{}' inside bind", invalid);
                             Err(anyhow::anyhow!("Parsing failed"))?;
                         }
@@ -187,6 +184,24 @@ where
                 drop(_guard);
 
                 Ok(Some(Expression::Bind(button, inner_expressions)))
+            }
+            TK![Print] => {
+                self.consume(TK![Print])?;
+                let string = token_to_string(self.consume(TK![String])?, self.input)?;
+                self.consume(TK![EOI])?;
+                Ok(Some(Expression::Print(string)))
+            }
+            TK![Println] => {
+                self.consume(TK![Println])?;
+                let mut string = token_to_string(self.consume(TK![String])?, self.input)?;
+                string.push('\n');
+                self.consume(TK![EOI])?;
+                Ok(Some(Expression::Print(string)))
+            }
+            TK![PrintClipboard] => {
+                self.consume(TK![PrintClipboard])?;
+                self.consume(TK![EOI])?;
+                Ok(Some(Expression::PrintClipboard))
             }
             TK![EOI] => {
                 self.consume(TK![EOI])?;
