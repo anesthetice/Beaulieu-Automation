@@ -106,25 +106,28 @@ Arguments:
 
 ## Detailed Usage and Examples
 
-> [!NOTE]  
-> For the following assume the executable was renamed to `ba.exe` for the sake of brevity.
+> **Note**  
+> For brevity, we assume the executable is named `ba.exe` in the following examples.
 
-Creating a new BA-application named `test`:
+### Creating a New BA Application
+
+To initialize a new BA application named `test`:
 ```
 ba.exe new test
 ```
 
-This results in the creation of a new folder called `test` in the current working directory. It contains the following files:
-1. `main.ba` -> the BA script file
-2. `keymap.json` -> maps strings (used to represent a key in the script) to valid keys
-3. `mousemap.json` -> maps strings (used to represent a mouse button in the script) to valid mouse buttons
-4. `README.md` -> the application's README file
+This will generate a new folder named `test` in the current working directory. It contains the following files:
 
-Let's go through each one-by-one in reverse:
+1. **`main.ba`** – The core BA script file.
+2. **`keymap.json`** – Maps human-readable key names to valid key identifiers.
+3. **`mousemap.json`** – Maps mouse button names to their respective identifiers.
+4. **`README.md`** – A template README for documenting your application.
+
+Let's go through each file in detail:
 
 ### `README.md`
-Quite self-explanatory, contains information relevent to the use of the BA application
-```
+This file is meant to document the purpose and requirements of your BA application.
+``` md
 ## Title
 
 ### description
@@ -136,20 +139,18 @@ Quite self-explanatory, contains information relevent to the use of the BA appli
 ```
 
 ### `keymap.json` and `mousemap.json`
-Contains (value, key/button) pairs, the left values are what you can use in the BA script to represent a button or a key
-``` 
-  [
-    "escape", <-- Its name in the script
-    "EscapeKey" <-- The actual key
-  ],
-  [
-    "esc", <-- A key/button can have multiple names
-    "EscapeKey"
-  ],
+These files contain mappings between script names and actual key or button identifiers. Example from `keymap.json`:
+```json
+[
+  ["escape", "EscapeKey"], // 'escape' can be used in the script to refer to the EscapeKey
+  ["esc", "EscapeKey"]     //  so can 'esc', however using 'EscapeKey' would not work
+]
 ```
+> [!IMPORTANT]  
+> In the script file, keys/buttons can take any capitalization, however the script names defined in the `*map.json` files must be in lowercase.
 
 ### `main.ba`
-The most important file, it should currently by default look something like this:
+This is the primary script file. By default, it looks like this:
 ```
 // Resolution of the primary monitor for which this script was created
 // DO NOT MODIFY
@@ -162,7 +163,9 @@ define DELAY_BETWEEN_ACTIONS = 50
 define GLOBAL_HALT_KEY = Esc
 ```
 
-Here are all the available expressions:
+### Available expressions
+
+The following commands are available in BA scripts:
 ```
 Move [int], [int]      // Moves the mouse cursor to the specified (x, y) coordinates  
 Tap [key/button]       // Taps a key or button once  
@@ -180,8 +183,11 @@ PrintClipboard         // Prints the contents of the clipboard
 Scroll [int]           // Scrolls by the specified amount  
 ```
 
+### Example Scripts
 
-Here's a simple script that copies a line to the clipboard, prints it, then pastes it somewhere else:
+#### Copy-Paste Script
+
+This script copies a selected line to the clipboard, prints it, then pastes it elsewhere:
 ```
 define RESOLUTION = 1920, 1080
 define DELAY_BETWEEN_ACTIONS = 200
@@ -203,7 +209,8 @@ Tap enter
 Press ctrl; Tap v; Release ctrl
 ```
 
-And here is another that binds the numrow1 and numrow2 keys to scroll up and down by a large amount:
+#### Scroll Control with Hotkeys
+This script binds the `numrow1` and `numrow2` keys to scrolling up and down in large steps:
 ```
 define RESOLUTION = 1920, 1080
 define DELAY_BETWEEN_ACTIONS = 50
