@@ -104,14 +104,61 @@ Arguments:
           number of times to repeat the script
 ```
 
-## Example and BA-script guide
+## Detailed Usage and Examples
 
 > [!NOTE]  
-> For the following assume the executable was renamed to ba.exe for ease of use
+> For the following assume the executable was renamed to `ba.exe` for the sake of brevity.
 
 Creating a new BA-application named `test`:
 ```
 ba.exe new test
 ```
 
-This creates a new folder in the current working directory, the folder ...
+This results in the creation of a new folder called `test` in the current working directory. It contains the following files:
+1. `main.ba` -> the BA script file
+2. `keymap.json` -> maps strings (used to represent a key in the script) to valid keys
+3. `mousemap.json` -> maps strings (used to represent a mouse button in the script) to valid mouse buttons
+4. `README.md` -> the application's README file
+
+Let's go through each one-by-one in reverse:
+
+### `README.md`
+Quite self-explanatory, contains information relevent to the use of the BA application
+```
+## Title
+
+### description
+* describe what your application is used for here
+
+### layout
+* describe your desktop's initial layout for the application to function properly
+* please also include a screenshot of the entire initial desktop in the application folder
+```
+
+### `keymap.json` and `mousemap.json`
+Contains (value, key/button) pairs, the left values are what you can use in the BA script to represent a button or a key
+``` 
+  [
+    "escape", <-- Its name in the script
+    "EscapeKey" <-- The actual key
+  ],
+  [
+    "esc", <-- A key/button can have multiple names
+    "EscapeKey"
+  ],
+```
+
+### `main.ba`
+The most important file, it should currently by default look something like this
+```
+// Resolution of the primary monitor for which this script was created
+// DO NOT MODIFY
+define RESOLUTION = 1920, 1080
+
+// The standard delay between actions given in milliseconds
+define DELAY_BETWEEN_ACTIONS = 50
+
+// The button used to stop the application if required
+define GLOBAL_HALT_KEY = Esc
+```
+
