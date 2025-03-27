@@ -11,6 +11,7 @@ A lightweight, fast, and feature-rich interpreter for a custom scripting languag
 * hotkey creation
 * robust failsafes: global halt key, await expression
 * usable as a simple portable executable
+* emulates real key presses and mouse movements, bypassing annoying applications (exception for the `Type` expression as it uses a virtual key packet)
 
 ## Installation
 
@@ -55,9 +56,15 @@ cargo build --release
 >            EnterKey => 0x0D,
 >            EscapeKey => 0x1B,
 >            ...
+>            // <
+>            OEM102 => 0xE2,
+>            OtherKey(code) => code,
 >        }
->    }  
+>    }
+> }  
 > ```
+
+The application only has 2 commands:
 ```
 Usage: BeaulieuAutomation.exe [COMMAND]
 
@@ -69,4 +76,34 @@ Commands:
 Options:
   -h, --help     Print help
   -V, --version  Print version
+```
+
+Here's how to use `new`:
+```
+Usage: BeaulieuAutomation.exe new <path>
+
+Arguments:
+  <path>
+          path/name of the new application
+          e.g. 'new test' will create a new application named test in the terminal's current working directory
+```
+
+Here's how to use `run`:
+```
+Usage: BeaulieuAutomation.exe run <path> [repetitions]
+
+Arguments:
+  <path>
+          path of the application folder
+
+  [repetitions]
+          number of times to repeat the script
+```
+
+## BA-script
+
+Quite straightforward and intuitive, here's an example that uses every single available expression.
+
+```
+TODO
 ```
