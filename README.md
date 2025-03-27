@@ -5,6 +5,7 @@
 A lightweight, fast, and feature-rich interpreter for a custom scripting language designed to automate repetitive manual user input tasks on Windows. Written in Rust, it prioritizes failsafe guarantees, detailed logging, and reliable execution.
 
 ## Features
+
 * beautiful logging using the tracing crate
 * automatic scaling of scripts when executed
 * hotkey creation
@@ -13,9 +14,9 @@ A lightweight, fast, and feature-rich interpreter for a custom scripting languag
 
 ## Installation
 
-This application is meant to be used as a stand-alone portable executable, you can either download a pre-compiled binary from the releases or compile it yourself by running the following:
+This application is meant to be used as a stand-alone portable executable, you can either download a [pre-compiled binary](https://github.com/anesthetice/Beaulieu-Automation/releases) or compile it yourself by running the following:
 
-```
+``` bash
 git clone https://github.com/anesthetice/Beaulieu-Automation.git
 cd Beaulieu-Automation
 cargo build --release
@@ -24,8 +25,39 @@ cargo build --release
 ## Usage
 
 > [!IMPORTANT]  
-> BA is currently configured to be used with a `Swiss French` keyboard layout, if you wish to change this, please take a look at main.rs
-
+> BA is currently configured to be used with a `Swiss French` keyboard layout, if you wish to change this, please adapt the following in [main.rs](crates/ba/src/main.rs) to your desired keyboard layout, see [here](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getkeyboardlayoutnamea) for more information.
+> ``` rust
+>    // check keyboard layout
+>    let mut pwszklid = [0_u8; 9];
+>    unsafe {
+>        GetKeyboardLayoutNameA(&mut pwszklid).context("Failed to get keyboard layout")?;
+>    }
+>    let keyboard_layout = CStr::from_bytes_with_nul(&pwszklid)?.to_str()?;
+>    if keyboard_layout != "0000100C" {
+>        tracing::error!(
+>            "Expected '0000100C' for keyboard layout, got '{}'",
+>            keyboard_layout
+>        );
+>        Err(anyhow::anyhow!(
+>            "Invalid keyboard layout, switch to Swiss-French"
+>        ))?
+>    }
+> ```
+> And also adapt the following in [input.rs](crates/input-bot/src/windows/inputs.rs) to your desired keyboard layout
+> ``` rust
+> impl From<KeybdKey> for u64 {
+>    // https://docs.microsoft.com/en-us/windows/win32/inputdev/virtual-key-codes?redirectedfrom=MSDN
+>    // modified for swiss-french keyboard
+>    fn from(key: KeybdKey) -> u64 {
+>        match key {
+>            BackspaceKey => 0x08,
+>            TabKey => 0x09,
+>            EnterKey => 0x0D,
+>            EscapeKey => 0x1B,
+>            ...
+>        }
+>    }  
+> ```
 ```
 Usage: BeaulieuAutomation.exe [COMMAND]
 
