@@ -2,7 +2,7 @@
 
 ---
 
-A lightweight, fast, and feature-rich interpreter for a custom scripting language designed to automate repetitive manual user input tasks on Windows. Written in Rust, it prioritizes failsafe guarantees, detailed logging, and reliable execution.
+A lightweight, fast, and feature-rich compiler for a custom scripting language designed to automate repetitive manual user input tasks on Windows. Written in Rust, it prioritizes failsafe guarantees, detailed logging, and reliable execution.
 
 ## Features
 
@@ -179,6 +179,7 @@ Bind [key] {
   [expression]         // Binds an expression to a key press  
 }  
 Print [string]         // Prints a message to the console  
+Println [string]       // Appends a newline to the printed message
 PrintClipboard         // Prints the contents of the clipboard  
 Scroll [int]           // Scrolls by the specified amount  
 ```
