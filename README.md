@@ -12,6 +12,14 @@ A lightweight, fast, and feature-rich compiler for a custom scripting language d
 * Robust failsafes: global halt key, `await` expression
 * Simple portable executable
 * Real key press and mouse movement emulation (bypassing restrictions in most applications, except for the Type expression, which uses virtual key packets)
+* Scripts are fully parsed and checked for errors before execution.
+
+## Table of Contents
+
+- [Installation](#Installation)
+- [Usage](#Usage)
+- [Detailed Usage and Examples](#detailed-usage-and-examples)
+- [Logging](#logging)
 
 ## Installation
 
@@ -106,14 +114,14 @@ Arguments:
 
 ## Detailed Usage and Examples
 
-> **Note**  
+> [!NOTE]
 > For brevity, we assume the executable is named `ba.exe` in the following examples.
 
 ### Creating a New BA Application
 
 To initialize a new BA application named `test`:
 ```
-ba.exe new test
+.\ba.exe new test
 ```
 
 This will generate a new folder named `test` in the current working directory. It contains the following files:
@@ -225,3 +233,39 @@ Bind nr2 {
 }
 Await
 ```
+
+## Logging
+
+> [!IMPORTANT]  
+> Logs are printed to standard output and saved at:  
+> `C:\Users\JohnDoe\AppData\Local\BeaulieuAutomation\data\logs`
+
+All script activity, including errors and execution details, is logged for debugging and transparency. Below are some common errors and examples of how they are reported.
+
+#### **Invalid Expression Name**  
+Occurs when an unrecognized expression is used (e.g., `sleep 10` instead of `Sleep 10`):
+
+<img src="assets/invalid_expression_name.png" width=60% />
+
+#### **Key Already Bound**  
+Happens when trying to bind a key that is already assigned:
+
+<img src="assets/invalid_bind.png" width=60% />
+
+#### **Invalid Argument**  
+Triggered when an expression receives an incorrect argument type (e.g., `Sleep "Hello, World!"` instead of `Sleep 10`): 
+
+<img src="assets/invalid_value.png" width=60% />
+
+#### **Global Halt Key Pressed** 
+
+Pressing the halt key interrupts script execution, preventing unintended loops or runaway behavior:
+
+<img src="assets/halt_example_part_1.png" width=60% />
+
+<img src="assets/halt_example_part_2.png" width=60% />
+
+
+
+
+
