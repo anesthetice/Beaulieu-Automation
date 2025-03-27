@@ -149,7 +149,7 @@ Contains (value, key/button) pairs, the left values are what you can use in the 
 ```
 
 ### `main.ba`
-The most important file, it should currently by default look something like this
+The most important file, it should currently by default look something like this:
 ```
 // Resolution of the primary monitor for which this script was created
 // DO NOT MODIFY
@@ -162,3 +162,58 @@ define DELAY_BETWEEN_ACTIONS = 50
 define GLOBAL_HALT_KEY = Esc
 ```
 
+Here are all the available expressions:
+```
+Move [int], [int]      // Moves the mouse cursor to the specified (x, y) coordinates  
+Tap [key/button]       // Taps a key or button once  
+Press [key/button]     // Holds down a key or button  
+Release [key/button]   // Releases a held key or button  
+Sleep [float]          // Pauses execution for the given time (in seconds)  
+Type [string]          // Types a string (e.g., "Hello, World!" will be written at once)  
+Await                  // Suspends execution indefinitely (until the global halt key is pressed) for hotkey scripts  
+Await [key]            // Waits for a key press before resuming execution  
+Bind [key] {  
+  [expression]         // Binds an expression to a key press  
+}  
+Print [string]         // Prints a message to the console  
+PrintClipboard         // Prints the contents of the clipboard  
+Scroll [int]           // Scrolls by the specified amount  
+```
+
+
+Here's a simple script that copies a line to the clipboard, prints it, then pastes it somewhere else:
+```
+define RESOLUTION = 1920, 1080
+define DELAY_BETWEEN_ACTIONS = 200
+define GLOBAL_HALT_KEY = Esc
+
+Sleep 3.0
+
+Move 1400, 270
+Press lmb
+Move 270, 270
+Release lmb
+
+Press ctrl; Tap c; Release ctrl
+PrintClipboard
+
+Move 1400, 500
+Tap lmb
+Tap enter
+Press ctrl; Tap v; Release ctrl
+```
+
+And here is another that binds the numrow1 and numrow2 keys to scroll up and down by a large amount:
+```
+define RESOLUTION = 1920, 1080
+define DELAY_BETWEEN_ACTIONS = 50
+define GLOBAL_HALT_KEY = Esc
+
+Bind nr1 {
+    ScrollUp 400
+}
+Bind nr2 {
+    ScrollDown 400
+}
+Await
+```
