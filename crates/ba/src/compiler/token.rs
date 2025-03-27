@@ -4,6 +4,7 @@ pub struct Token {
 }
 
 impl Token {
+    #[allow(dead_code)]
     pub fn len(&self) -> usize {
         self.span.end - self.span.start
     }

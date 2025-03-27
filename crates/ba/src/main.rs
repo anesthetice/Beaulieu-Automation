@@ -10,13 +10,13 @@ use tracing::{info, level_filters::LevelFilter};
 
 use directories::ProjectDirs;
 use tracing_subscriber::{
+    Layer, Registry,
     fmt::{self, time::Uptime},
     layer::SubscriberExt,
-    Layer, Registry,
 };
 
 use windows::Win32::UI::{
-    HiDpi::{SetThreadDpiAwarenessContext, DPI_AWARENESS_CONTEXT_SYSTEM_AWARE},
+    HiDpi::{DPI_AWARENESS_CONTEXT_SYSTEM_AWARE, SetThreadDpiAwarenessContext},
     Input::KeyboardAndMouse::GetKeyboardLayoutNameA,
     WindowsAndMessaging::{GetSystemMetrics, SYSTEM_METRICS_INDEX},
 };
@@ -25,15 +25,17 @@ use windows::Win32::UI::{
 use tracing_subscriber::EnvFilter;
 
 fn main() -> anyhow::Result<()> {
-    let local_offset = time::UtcOffset::current_local_offset().unwrap_or_else(|error| {
-        eprintln!("Failed to get local offset, '{}'", error);
-        time::UtcOffset::UTC
+    let local_time = jiff::Zoned::try_from(std::time::SystemTime::now()).unwrap_or_else(|err| {
+        tracing::warn!(
+            "Failed to get local system time, defaulting to UTC: {}",
+            err
+        );
+        jiff::Zoned::new(jiff::Timestamp::now(), jiff::tz::TimeZone::UTC)
     });
-    let local_time = time::OffsetDateTime::now_utc().to_offset(local_offset);
     let local_time_string_pretty = format!(
         "{:0>4}-{:0>2}-{:0>2} {:0>2}:{:0>2}:{:0>2}",
         local_time.year(),
-        local_time.month() as u8,
+        local_time.month(),
         local_time.day(),
         local_time.hour(),
         local_time.minute(),
@@ -42,7 +44,7 @@ fn main() -> anyhow::Result<()> {
     let local_time_string = format!(
         "{:0>4}_{:0>2}_{:0>2}-{:0>2}_{:0>2}_{:0>2}",
         local_time.year(),
-        local_time.month() as u8,
+        local_time.month(),
         local_time.day(),
         local_time.hour(),
         local_time.minute(),

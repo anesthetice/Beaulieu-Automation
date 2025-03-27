@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use clap::{command, Arg, ArgAction, ArgMatches, Command};
+use clap::{Arg, ArgAction, ArgMatches, Command, command};
 use tracing::instrument;
 
 mod new;

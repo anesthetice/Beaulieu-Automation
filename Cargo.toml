@@ -1,24 +1,32 @@
 [workspace]
 members = [
     "crates/ba",
-    "crates/InputBot"
+    "crates/input-bot"
 ]
 resolver = "2"
 
 [workspace.package]
-authors = ["Elliot Currat"]
-edition = "2021"
-version = "0.2.2"
+authors = ["Elliot Currat <elliot.currat@epfl.ch>"]
+edition = "2024"
+version = "0.2.3"
+license = "MIT"
 
 [workspace.dependencies]
+inputbot = {version = "0.2.3", path = "crates/input-bot"}
+
 anyhow = { version = "1.0" }
-inputbot = { version = "0.6.0", path = "crates/InputBot" }
-once_cell = { version = "1.19" }
+clap = { version = "4.5" }
+directories = { version = "6.0" }
+jiff = { version = "0.2" }
+once_cell = { version = "1.21" }
 oneshot = { version = "0.1" }
 regex = { version = "1.10" }
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0" }
+serde_json = { version = "1.0" }
 tracing = { version = "0.1" }
-windows = { version = "0.51.1", features = [
+tracing-subscriber = { version = "0.3" }
+tracing-appender = { version = "0.2" }
+windows = { version = "0.61", features = [
     "Win32_Foundation",
     "Win32_UI_WindowsAndMessaging",
     "Win32_UI_Input_KeyboardAndMouse",

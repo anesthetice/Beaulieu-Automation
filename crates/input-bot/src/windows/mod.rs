@@ -1,20 +1,20 @@
 use crate::public::*;
 use std::{
     ffi::c_int,
-    mem::{size_of, MaybeUninit},
+    mem::{MaybeUninit, size_of},
     thread,
 };
 use windows::Win32::UI::{
     Input::KeyboardAndMouse::{
-        GetAsyncKeyState, GetKeyState, MapVirtualKeyW, RegisterHotKey, SendInput, UnregisterHotKey,
-        HOT_KEY_MODIFIERS, INPUT, INPUT_0, INPUT_KEYBOARD, INPUT_MOUSE, KEYBDINPUT,
-        KEYBD_EVENT_FLAGS, KEYEVENTF_KEYUP, KEYEVENTF_SCANCODE, KEYEVENTF_UNICODE,
-        MAP_VIRTUAL_KEY_TYPE, MOUSEEVENTF_HWHEEL, MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP,
-        MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP, MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP,
-        MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN, MOUSEEVENTF_XUP, MOUSEINPUT, MOUSE_EVENT_FLAGS,
+        GetAsyncKeyState, GetKeyState, HOT_KEY_MODIFIERS, INPUT, INPUT_0, INPUT_KEYBOARD,
+        INPUT_MOUSE, KEYBD_EVENT_FLAGS, KEYBDINPUT, KEYEVENTF_KEYUP, KEYEVENTF_SCANCODE,
+        KEYEVENTF_UNICODE, MAP_VIRTUAL_KEY_TYPE, MOUSE_EVENT_FLAGS, MOUSEEVENTF_HWHEEL,
+        MOUSEEVENTF_LEFTDOWN, MOUSEEVENTF_LEFTUP, MOUSEEVENTF_MIDDLEDOWN, MOUSEEVENTF_MIDDLEUP,
+        MOUSEEVENTF_RIGHTDOWN, MOUSEEVENTF_RIGHTUP, MOUSEEVENTF_WHEEL, MOUSEEVENTF_XDOWN,
+        MOUSEEVENTF_XUP, MOUSEINPUT, MapVirtualKeyW, RegisterHotKey, SendInput, UnregisterHotKey,
         VIRTUAL_KEY, VK_PACKET,
     },
-    WindowsAndMessaging::{GetCursorPos, GetMessageW, SetCursorPos, MSG},
+    WindowsAndMessaging::{GetCursorPos, GetMessageW, MSG, SetCursorPos},
 };
 use windows::Win32::{
     Foundation::HGLOBAL,
@@ -31,10 +31,19 @@ mod inputs;
 pub fn get_clipboard_string() -> Option<String> {
     unsafe {
         use std::os::raw::c_void;
-        OpenClipboard(GetClipboardOwner()).ok()?;
+        OpenClipboard(
+            GetClipboardOwner()
+                .map_err(|err| tracing::warn!("Failed to get clipboard owner: {}", err))
+                .ok(),
+        )
+        .map_err(|err| tracing::warn!("Failed to open clipboard: {}", err))
+        .ok()?;
         // CF_TEXT = 1
         // not using GlobalLock as we are not writing anything
-        let clipboard_data: *mut c_void = GetClipboardData(1).ok()?.0 as *mut c_void;
+        let clipboard_data: *mut c_void = GetClipboardData(1)
+            .map_err(|err| tracing::warn!("Failed to read clipboard: {}", err))
+            .ok()?
+            .0 as *mut c_void;
         let size: usize = GlobalSize(HGLOBAL(clipboard_data));
         let ptr: *const u8 = clipboard_data as *const u8;
         let string: String =
@@ -111,7 +120,7 @@ impl KeybdKey {
                     callback();
                 } else {
                     let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
-                    unsafe { GetMessageW(&mut msg, None, 0, 0) };
+                    unsafe { let _ = GetMessageW(&mut msg, None, 0, 0); }
                     callback();
                 }
             })
@@ -126,7 +135,7 @@ impl KeybdKey {
         }
         let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
         unsafe {
-            GetMessageW(&mut msg, None, 0, 0);
+            let _ = GetMessageW(&mut msg, None, 0, 0);
             UnregisterHotKey(None, 0)?;
         }
         Ok(())
@@ -143,7 +152,7 @@ impl KeybdKey {
                 } else {
                     loop {
                         let mut msg: MSG = unsafe { MaybeUninit::zeroed().assume_init() };
-                        unsafe { GetMessageW(&mut msg, None, 0, 0) };
+                        unsafe { let _ = GetMessageW(&mut msg, None, 0, 0); }
                         tracing::info!("HotKey bound to '{:?}' pressed", self);
                         callback();
                     }
@@ -236,27 +245,28 @@ impl MouseCursor {
 
 impl MouseWheel {
     /// Scrolls the mouse wheel vertically by a given amount of "wheel clicks".
-    pub fn scroll_ver(dwheel: i32) {
+    pub fn scroll_ver(dwheel: u32) {
         send_mouse_input(MOUSEEVENTF_WHEEL, dwheel * 120, 0, 0);
     }
 
     /// Scrolls the mouse wheel horizontally by a given amount of "wheel clicks".
-    pub fn scroll_hor(dwheel: i32) {
+    pub fn scroll_hor(dwheel: u32) {
         send_mouse_input(MOUSEEVENTF_HWHEEL, dwheel * 120, 0, 0);
     }
 
     /// Scrolls the mouse wheel vertically by a given amount.
-    pub fn scroll_ver_unscaled(dwheel: i32) {
+    /// Cast a i32 to a u32 beforehand, see https://github.com/microsoft/win32metadata/issues/1865#issuecomment-1977365435
+    pub fn scroll_ver_unscaled(dwheel: u32) {
         send_mouse_input(MOUSEEVENTF_WHEEL, dwheel, 0, 0);
     }
 
     /// Scrolls the mouse wheel horizontally by a given amount.
-    pub fn scroll_hor_unscaled(dwheel: i32) {
+    pub fn scroll_hor_unscaled(dwheel: u32) {
         send_mouse_input(MOUSEEVENTF_HWHEEL, dwheel, 0, 0);
     }
 }
 
-fn send_mouse_input(flags: MOUSE_EVENT_FLAGS, data: i32, dx: i32, dy: i32) {
+fn send_mouse_input(flags: MOUSE_EVENT_FLAGS, data: u32, dx: i32, dy: i32) {
     let mouse = MOUSEINPUT {
         dx,
         dy,
@@ -274,7 +284,7 @@ fn send_mouse_input(flags: MOUSE_EVENT_FLAGS, data: i32, dx: i32, dy: i32) {
     unsafe { SendInput(&[input], size_of::<INPUT>() as c_int) };
 }
 
-fn send_mouse_inputs(inputs: Vec<(MOUSE_EVENT_FLAGS, i32, i32, i32)>) {
+fn send_mouse_inputs(inputs: Vec<(MOUSE_EVENT_FLAGS, u32, i32, i32)>) {
     let inputs: Vec<INPUT> = inputs
         .into_iter()
         .map(|(flags, data, dx, dy)| {

@@ -1,0 +1,1 @@
+A heavily modified version of InputBot, https://github.com/obv-mikhail/InputBot, created by obv-mikhail and licensed under MIT.

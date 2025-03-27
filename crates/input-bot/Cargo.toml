@@ -1,9 +1,9 @@
 [package]
+authors = ["obv-mikhail <obv.mikhail@gmail.com>", "Elliot Currat <elliot.currat@epfl.ch>"]
 name = "inputbot"
-version = "0.6.0"
-authors = ["obv-mikhail <obv.mikhail@gmail.com>", "anesthetice"]
-license = "MIT"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
@@ -13,6 +13,3 @@ regex = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
 windows = { workspace = true }
-
-[dev-dependencies]
-toml = { version = "^0.8" }

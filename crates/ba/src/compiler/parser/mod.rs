@@ -1,4 +1,4 @@
-use super::{expression::Expression, lexer::Lexer, Token, TokenKind};
+use super::{Token, TokenKind, expression::Expression, lexer::Lexer};
 use crate::TK;
 use ast::{token_to_button, token_to_float, token_to_position, token_to_string};
 use std::iter::Peekable;

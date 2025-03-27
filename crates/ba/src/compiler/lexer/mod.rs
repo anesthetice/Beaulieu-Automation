@@ -1,4 +1,4 @@
-use rules::{get_rules, Rule};
+use rules::{Rule, get_rules};
 
 use crate::TK;
 

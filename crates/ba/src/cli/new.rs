@@ -6,7 +6,7 @@ use super::*;
 use std::{
     fs::OpenOptions,
     io::Write,
-    path::{absolute, PathBuf},
+    path::{PathBuf, absolute},
 };
 
 pub(super) fn subcommand() -> Command {

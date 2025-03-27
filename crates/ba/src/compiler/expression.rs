@@ -1,5 +1,5 @@
 use super::button::Button;
-use inputbot::{get_clipboard_string, MouseWheel};
+use inputbot::{MouseWheel, get_clipboard_string};
 use std::io::Write;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -53,7 +53,8 @@ impl Expression {
                     tracing::warn!("Failed to copy the clipboard's content");
                 }
             }
-            Self::Scroll(value) => MouseWheel::scroll_ver_unscaled(*value),
+            // see https://github.com/microsoft/win32metadata/issues/1865#issuecomment-1977365435
+            Self::Scroll(value) => MouseWheel::scroll_ver_unscaled(*value as u32),
         }
     }
 

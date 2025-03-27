@@ -5,7 +5,7 @@ use crate::compiler::Engine;
 use super::*;
 use std::{
     io::Read,
-    path::{absolute, PathBuf},
+    path::{PathBuf, absolute},
 };
 
 pub(super) fn subcommand() -> Command {
