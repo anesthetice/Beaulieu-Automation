@@ -2,7 +2,7 @@
 
 ---
 
-A lightweight, fast, and feature-rich compiler for a custom scripting language designed to automate repetitive manual user input tasks on Windows. Written in Rust, it prioritizes failsafe guarantees, detailed logging, and reliable execution.
+A lightweight, fast, and feature-rich interpreter with ahead-of-time compilation for a custom scripting language designed to automate repetitive manual user input tasks on Windows. Written in Rust, it prioritizes failsafe guarantees, detailed logging, and reliable execution.
 
 ## Features
 
